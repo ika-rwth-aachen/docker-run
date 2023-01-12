@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+
+import argparse
+import subprocess
+
+
+def parseArguments():
+
+    parser = argparse.ArgumentParser()
+    # ... declare no-gpu, no-x11, ...
+    # ... catch all others args.unknown?
+
+    args = parser.parse_args()
+
+    return args
+
+
+def runCommand(str, *args, **kwargs) -> str:
+
+    # wrapper around subprocess.xyz(*args, **kwargs)
+    # subprocess.run oder subprocess.Popen?
+    # stdout und stderr abgreifen?
+    # if stderr -> exit(1)
+
+    return std_out, std_err
+
+
+def buildDockerRunCommand(args) -> str:
+
+    # build cmd
+    # running_containers = runCommand("docker ps")
+
+    # if not args.no_gpus:
+    #     run_args.append("--gpus all")
+
+    # for a in args.unknown_args:
+    #     run_args.append(a)
+
+    # cmd = "docker run "
+    # for ra in run_args:
+    #     cmd += "ra "
+
+    return cmd
+
+
+def dockerRun(cmd):
+
+    runCommand(cmd)
+
+
+def main():
+
+    args = parseArguments()
+    cmd = buildDockerRunCommand(args)
+    dockerRun(cmd)
+
+
+if __name__ == "__main__":
+
+    main()
