@@ -77,8 +77,8 @@ def buildDockerRunCommand(args) -> str:
         docker_command += ['-v', f'{XSOCK}:{XSOCK}']
     
     docker_command += args.run_args
-    docker_command += args.image
-    docker_command += args.cmd
+    docker_command += [args.image]
+    docker_command += [args.cmd]
 
     return docker_command
 
