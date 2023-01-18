@@ -10,23 +10,17 @@ def parseArguments():
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('image', type=str, help='Docker image name')
-    parser.add_argument('cmd', type=str, help='Command')
-    parser.add_argument('run_args', nargs=argparse.REMAINDER, action='store')
-    parser.add_argument('--no-isolated', action='store_true', help='Do not run isolated')
+    parser.add_argument('--no-isolated', action='store_true', default=True, help='Do not run isolated')
     parser.add_argument('--no-gpu', action='store_true', help='Do not use GPUs')
     parser.add_argument('--no-x11', action='store_true', help='Do not use GUI forwarding')
 
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
-    return args
+    return args, unknown
 
 
 def runCommand(str, *args, **kwargs) -> str:
     # wrapper around subprocess.xyz(*args, **kwargs)
-    # subprocess.run oder subprocess.Popen?
-    # stdout und stderr abgreifen?
-    # if stderr -> exit(1)
 
     try:
         output = subprocess.run(str, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -36,16 +30,32 @@ def runCommand(str, *args, **kwargs) -> str:
 
     return output.stdout.decode(), output.stderr.decode()
 
-def buildDockerRunCommand(args) -> str:
+def buildDockerRunCommand(args, unknown_args) -> str:
     # build cmd
-    # running_containers = runCommand("docker ps")
-    # for a in args.unknown_args:
-    #     run_args.append(a)
-    # cmd = "docker run "
-    # for ra in run_args:
-    #     cmd += "ra "
+
     OS = subprocess.run(['uname', '-s'], capture_output=True).stdout.decode()
     ARCH = subprocess.run(['uname', '-m'], capture_output=True).stdout.decode()
+    UPDATE = 0
+
+
+    #if runCommand("docker images -q args.image")[0] == '':
+    #    print("Downloading image for the first time. This may take a while if you are not connected to the ika's network directly.")
+    #    UPDATE = 1
+    #elif not args.offline:
+    #    print("Looking for a new version of the image. Please login using your ika's LDAP account.\n")
+    #    print("This requires network access to the ika GitLab server. Use the -o switch for offline mode.\n")
+
+    runningContainers = runCommand('docker ps --format "{{.Names}}"')[0]
+    runningContainers = runningContainers.split('\n')
+    for i, u_arg in enumerate(unknown_args):
+        if '--name' in u_arg:
+            if ' ' in u_arg:
+                name = u_arg.split(' ')[1]
+            else:
+                name = u_arg[i+1]
+            if name in runningContainers:
+                docker_command = ['docker', 'exec', '-it', name, 'bash']
+                return docker_command
 
     docker_command = ['docker', 'run']
 
@@ -68,7 +78,7 @@ def buildDockerRunCommand(args) -> str:
         if not args.no_isolated:
             DISPLAY="172.17.0.1:" + DISPLAY.split(":")[1] # replace with docker host ip if any host is given
         if OS =='Darwin':
-            DISPLAY="XY"
+            DISPLAY="XY" # TODO
 
         docker_command += ['-e', f'DISPLAY={DISPLAY}']
         docker_command += ['-e', 'QT_X11_NO_MITSHM=1']
@@ -76,19 +86,18 @@ def buildDockerRunCommand(args) -> str:
         docker_command += ['-v', f'{XAUTH.name}:{XAUTH.name}']
         docker_command += ['-v', f'{XSOCK}:{XSOCK}']
     
-    docker_command += args.run_args
-    docker_command += [args.image]
-    docker_command += [args.cmd]
+    docker_command += unknown_args
 
     return docker_command
 
 
 def main():
 
-    args = parseArguments()
-    cmd = buildDockerRunCommand(args)
+    args, unknown_args = parseArguments()
+    cmd = buildDockerRunCommand(args, unknown_args)
     #runCommand(cmd)
     print(' '.join(cmd))
+    #return ' '.join(cmd)
 
 
 if __name__ == "__main__":

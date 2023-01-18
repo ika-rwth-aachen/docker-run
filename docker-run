@@ -1,4 +1,20 @@
 #!/bin/bash
 
+OS="$(uname -s)" # supported: "Linux", "Darwin" (Mac)
+ARCH="$(uname -m)" # supported: "x86_64", "aarch64" (ARM, Jetson Orin), "arm64" (ARM, Mac)
+
+if ! id -Gn $USER | grep -q "\bdocker\b"; then
+  echo "User '${USER}' must be in 'docker' group to run containers."
+  echo "User can be added via: sudo usermod -aG docker ${USER}"
+  echo "Afterwards, the user may need to logout and login again."
+  exit 1
+fi
+
+if ! { [[ $OS = "Linux" && $ARCH = "x86_64" ]] || [[ $OS = "Darwin" && $ARCH = "arm64" ]] || [[ $OS = "Linux" && $ARCH = "aarch64" ]]; }; then
+  >&2 echo "Error: For $ARCH, $OS is not supported by this script. Aborting..."
+  exit 1
+fi
+
 CMD=$(python3 generateDockerRunCommand.py "${@}")
+echo $CMD
 exec $CMD

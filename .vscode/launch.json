@@ -5,12 +5,31 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: Current File",
+            "name": "generateRunCommand - ordered",
             "type": "python",
             "request": "launch",
-            "program": "${file}",
+            "program": "/home/jpbusch/git/ops/docker-ros/generateDockerRunCommand.py",
             "console": "integratedTerminal",
-            "args": ["gitlab.ika.rwth-aachen.de:5050/automated-driving/docker/ros1:latest", "bash", "--name=test", "--rm"],
+            "args": [
+                "--name test",
+                "--rm",
+                "gitlab.ika.rwth-aachen.de:5050/automated-driving/docker/ros1:latest",
+                "bash"                
+            ],
+            "justMyCode": true
+        },
+        {
+            "name": "generateRunCommand - not ordered",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/jpbusch/git/ops/docker-ros/generateDockerRunCommand.py",
+            "console": "integratedTerminal",
+            "args": [
+                "gitlab.ika.rwth-aachen.de:5050/automated-driving/docker/ros1:latest",
+                "bash",
+                "--name test",
+                "--rm"
+            ],
             "justMyCode": true
         }
     ]
