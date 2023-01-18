@@ -12,6 +12,7 @@ def parseArguments():
 
     parser.add_argument('--no-isolated', action='store_true', default=True, help='Do not run isolated')
     parser.add_argument('--no-gpu', action='store_true', help='Do not use GPUs')
+    parser.add_argument('--no-it', action='store_true', help='Do not use interactive mode')
     parser.add_argument('--no-x11', action='store_true', help='Do not use GUI forwarding')
 
     args, unknown = parser.parse_known_args()
@@ -57,6 +58,9 @@ def buildDockerRunCommand(args, unknown_args) -> str:
             docker_command += ['--runtime', 'nvidia'] # Orin
         # else (e.g. Mac) -> no gpu
 
+    if not args.no_it:
+        docker_command += ['-it']
+
     if not args.no_x11:
         XSOCK='/tmp/.X11-unix'  # to support X11 forwarding in isolated containers on local host (not thorugh SSH)
         XAUTH=tempfile.NamedTemporaryFile(prefix='.docker.xauth.', delete=False)
@@ -78,6 +82,9 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         docker_command += ['-v', f'{XSOCK}:{XSOCK}']
     
     docker_command += unknown_args
+
+    if unknown_args[-1] != 'bash' and not args.no_it:
+        docker_command += ['bash']
 
     return docker_command
 
