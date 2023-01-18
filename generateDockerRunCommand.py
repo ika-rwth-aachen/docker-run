@@ -35,15 +35,6 @@ def buildDockerRunCommand(args, unknown_args) -> str:
 
     OS = subprocess.run(['uname', '-s'], capture_output=True).stdout.decode()
     ARCH = subprocess.run(['uname', '-m'], capture_output=True).stdout.decode()
-    UPDATE = 0
-
-
-    #if runCommand("docker images -q args.image")[0] == '':
-    #    print("Downloading image for the first time. This may take a while if you are not connected to the ika's network directly.")
-    #    UPDATE = 1
-    #elif not args.offline:
-    #    print("Looking for a new version of the image. Please login using your ika's LDAP account.\n")
-    #    print("This requires network access to the ika GitLab server. Use the -o switch for offline mode.\n")
 
     runningContainers = runCommand('docker ps --format "{{.Names}}"')[0]
     runningContainers = runningContainers.split('\n')
@@ -52,7 +43,7 @@ def buildDockerRunCommand(args, unknown_args) -> str:
             if ' ' in u_arg:
                 name = u_arg.split(' ')[1]
             else:
-                name = u_arg[i+1]
+                name = unknown_args[i+1]
             if name in runningContainers:
                 docker_command = ['docker', 'exec', '-it', name, 'bash']
                 return docker_command
@@ -95,7 +86,6 @@ def main():
 
     args, unknown_args = parseArguments()
     cmd = buildDockerRunCommand(args, unknown_args)
-    #runCommand(cmd)
     print(' '.join(cmd))
     #return ' '.join(cmd)
 
