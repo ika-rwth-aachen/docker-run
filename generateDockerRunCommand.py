@@ -4,6 +4,7 @@ import argparse
 import subprocess
 import tempfile
 import os
+import sys
 
 
 def parseArguments():
@@ -93,9 +94,7 @@ def main():
 
     args, unknown_args = parseArguments()
     cmd = buildDockerRunCommand(args, unknown_args)
-    print(' '.join(cmd))
-    #return ' '.join(cmd)
-
+    print(' '.join(cmd), file=sys.stderr)
 
 if __name__ == "__main__":
 
