@@ -15,6 +15,7 @@ def parseArguments():
     parser.add_argument('--no-gpu', action='store_true', help='Do not use GPUs')
     parser.add_argument('--no-it', action='store_true', help='Do not use interactive mode')
     parser.add_argument('--no-x11', action='store_true', help='Do not use GUI forwarding')
+    parser.add_argument('--no-rm', action='store_true', help='Do not remove Container after exiting')
 
     args, unknown = parser.parse_known_args()
 
@@ -61,6 +62,10 @@ def buildDockerRunCommand(args, unknown_args) -> str:
 
     if not args.no_it:
         docker_command += ['-it']
+
+    if not args.no_rm:
+        print("\t - remove after exiting")
+        docker_command += ['--rm']
 
     if not args.no_x11:
         XSOCK='/tmp/.X11-unix'  # to support X11 forwarding in isolated containers on local host (not thorugh SSH)
