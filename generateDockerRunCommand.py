@@ -116,7 +116,8 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         docker_command += [args.image]
     if args.cmd:
         docker_command += args.cmd
-    elif not args.no_it and not checkCommand(unknown_args[-1]):
+    elif not args.no_it and unknown_args:
+        if not checkCommand(unknown_args[-1]):
         print("\t - Using a bash")
         docker_command += ['bash']
 
