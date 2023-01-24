@@ -11,6 +11,7 @@ def parseArguments():
 
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('--dev', action='store_true', help='Dev-Mode: Mount pwd into /home/lutix/ws/src/target')
     parser.add_argument('--no-isolated', action='store_true', default=True, help='Do not run isolated')
     parser.add_argument('--no-gpu', action='store_true', help='Do not use GPUs')
     parser.add_argument('--no-it', action='store_true', help='Do not use interactive mode')
@@ -103,6 +104,11 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         docker_command += ['-e', f'XAUTHORITY={XAUTH.name}']
         docker_command += ['-v', f'{XAUTH.name}:{XAUTH.name}']
         docker_command += ['-v', f'{XSOCK}:{XSOCK}']
+
+    # mount pwd into /home/lutix/ws/src/target
+    if args.dev:
+        print(f"\t - mounting `{os.getcwd()}` to `/home/lutix/ws/src/target`")
+        docker_command += ['-v', f'{os.getcwd()}:/home/lutix/ws/src/target']
 
     # add --name flag to docker_command
     if args.name:
