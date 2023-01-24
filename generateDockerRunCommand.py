@@ -16,7 +16,7 @@ def parseArguments():
     parser.add_argument('--no-it', action='store_true', help='Do not use interactive mode')
     parser.add_argument('--no-x11', action='store_true', help='Do not use GUI forwarding')
     parser.add_argument('--no-rm', action='store_true', help='Do not remove Container after exiting')
-    parser.add_argument('--name', help='Name of the Container, which is started')
+    parser.add_argument('--name', default=os.getcwd(), help='Name of the Container, which is started')
     parser.add_argument('--image', help='Name of Image, which is used to start the container')
     parser.add_argument('--cmd', nargs='*', help='Command, which is executed in the container')
 
@@ -118,15 +118,15 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         docker_command += args.cmd
     elif not args.no_it and unknown_args:
         if not checkCommand(unknown_args[-1]):
-        print("\t - Using a bash")
-        docker_command += ['bash']
+            print("\t - Using a bash")
+            docker_command += ['bash']
 
     return docker_command
 
 
 def main():
 
-    args, unknown_args = parseArguments()    
+    args, unknown_args = parseArguments()
     cmd = buildDockerRunCommand(args, unknown_args)
     print(' '.join(cmd), file=sys.stderr)
 
