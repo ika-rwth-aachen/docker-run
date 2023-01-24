@@ -16,6 +16,8 @@ def parseArguments():
     parser.add_argument('--no-it', action='store_true', help='Do not use interactive mode')
     parser.add_argument('--no-x11', action='store_true', help='Do not use GUI forwarding')
     parser.add_argument('--no-rm', action='store_true', help='Do not remove Container after exiting')
+    parser.add_argument('--image', help='Name of Image, which is used to start the container')
+    parser.add_argument('--cmd', nargs='*', help='Command, which is executed in the container')
 
     args, unknown = parser.parse_known_args()
 
@@ -89,8 +91,10 @@ def buildDockerRunCommand(args, unknown_args) -> str:
     
     docker_command += unknown_args
 
-    if unknown_args[-1] != 'bash' and not args.no_it:
-        docker_command += ['bash']
+    if args.image:
+        docker_command += [args.image]
+    if args.cmd:
+        docker_command += args.cmd
 
     return docker_command
 
