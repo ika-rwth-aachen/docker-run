@@ -16,6 +16,7 @@ def parseArguments():
     parser.add_argument('--no-it', action='store_true', help='Do not use interactive mode')
     parser.add_argument('--no-x11', action='store_true', help='Do not use GUI forwarding')
     parser.add_argument('--no-rm', action='store_true', help='Do not remove Container after exiting')
+    parser.add_argument('--name', help='Name of the Container, which is started')
     parser.add_argument('--image', help='Name of Image, which is used to start the container')
     parser.add_argument('--cmd', nargs='*', help='Command, which is executed in the container')
 
@@ -51,14 +52,10 @@ def buildDockerRunCommand(args, unknown_args) -> str:
 
     runningContainers = runCommand('docker ps --format "{{.Names}}"')[0]
     runningContainers = runningContainers.split('\n')
-    for i, u_arg in enumerate(unknown_args):
-        if '--name' in u_arg:
-            if ' ' in u_arg:
-                name = u_arg.split(' ')[1]
-            else:
-                name = unknown_args[i+1]
-            if name in runningContainers:
-                docker_command = ['docker', 'exec', '-it', name, 'bash']
+    if args.name in runningContainers:
+        print(f"Attatch to running container <{args.name}> ...")
+        cmd = ' '.join(args.cmd) if args.cmd else 'bash'
+        docker_command = ['docker', 'exec', '-it', args.name, cmd]
                 return docker_command
 
     docker_command = ['docker', 'run']
@@ -97,6 +94,8 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         docker_command += ['-v', f'{XAUTH.name}:{XAUTH.name}']
         docker_command += ['-v', f'{XSOCK}:{XSOCK}']
     
+    if args.name:
+        docker_command += ['--name', args.name]
     docker_command += unknown_args
 
     if args.image:
