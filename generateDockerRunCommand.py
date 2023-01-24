@@ -16,7 +16,7 @@ def parseArguments():
     parser.add_argument('--no-it', action='store_true', help='Do not use interactive mode')
     parser.add_argument('--no-x11', action='store_true', help='Do not use GUI forwarding')
     parser.add_argument('--no-rm', action='store_true', help='Do not remove Container after exiting')
-    parser.add_argument('--name', default=os.getcwd(), help='Name of the Container, which is started')
+    parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='Name of the Container, which is started')
     parser.add_argument('--image', help='Name of Image, which is used to start the container')
     parser.add_argument('--cmd', nargs='*', help='Command, which is executed in the container')
 
