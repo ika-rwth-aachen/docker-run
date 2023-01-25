@@ -16,6 +16,53 @@ if ! { [[ $OS = "Linux" && $ARCH = "x86_64" ]] || [[ $OS = "Darwin" && $ARCH = "
   exit 1
 fi
 
+# check for ika image name and store it in $IMAGE and $IMAGE_TAG
+for var in "$@"
+do
+  if [[ $var == "gitlab.ika.rwth-aachen.de:5050/"* ]]; then
+    IMAGE=$var
+    tmp=${IMAGE#*:}
+    if [[ $tmp == *":"* ]]; then
+      IMAGE_TAG=${tmp#*:}
+    else
+      IMAGE_TAG="latest"
+    fi
+  fi
+done
+
+# pull or update image
+if [[ ! -z ${IMAGE} && "$(docker images -q ${IMAGE} 2> /dev/null)" = "" ]]; then
+  echo "Downloading image for the first time. This may take a while."
+  UPDATE="1"
+elif [[ ! -z ${GITLAB_ACCESS_TOKEN} && ! -z ${GITLAB_PROJECT_ID} && ! -z ${GITLAB_REGISTRY_ID} ]]; then
+  echo "Looking for a new version of the image. Please login using your ika's LDAP account."
+  echo ""
+
+  docker login gitlab.ika.rwth-aachen.de:5050
+  REGISTRY_REVISION=$(curl --silent --header "PRIVATE-TOKEN: ${GITLAB_ACCESS_TOKEN}" \
+                      "https://gitlab.ika.rwth-aachen.de/api/v4/projects/${GITLAB_PROJECT_ID}/registry/repositories/${GITLAB_REGISTRY_ID}/tags/${IMAGE_TAG}" | \
+                      python3 -c "import sys, json; print(json.load(sys.stdin)['revision'])")
+  LOCAL_REVISION=$(docker inspect --format='{{.Id}}' ${IMAGE})
+  LOCAL_REVISION=${LOCAL_REVISION#"sha256:"}
+  if [ "${LOCAL_REVISION}" != "${REGISTRY_REVISION}" ]; then
+   read -p "There is a new version (${REGISTRY_REVISION}) of the Docker image (${LOCAL_REVISION}) on the server. Upgrade [y/N]? " UPGRADE
+   if [ "${UPGRADE}" == "y" ] || [ "${UPGRADE}" == "Y" ]; then
+     echo "Upgrading to new image..."
+     UPDATE="1"
+   else
+     echo "No upgrade."
+   fi
+  fi
+elif [[ ! -z ${IMAGE} ]]; then
+  echo "Define \$GITLAB_ACCESS_TOKEN, \$GITLAB_PROJECT_ID and \$GITLAB_REGISTRY_ID if you want to update your image automatically!"
+fi
+
+if [ "${UPDATE}" = "1" ]; then
+  echo "Pulling Docker image from GitLab server. Please login using your ika's LDAP account."
+  docker login gitlab.ika.rwth-aachen.de:5050
+  docker pull ${IMAGE}
+fi
+
 python3 $DIR/generateDockerRunCommand.py "${@}" 2> $DIR/.docker_cmd
 CMD=$(cat $DIR/.docker_cmd)
 echo $CMD
