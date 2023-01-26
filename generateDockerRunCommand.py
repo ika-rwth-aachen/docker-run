@@ -12,6 +12,7 @@ def parseArguments():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--dev', action='store_true', help='Dev-Mode: Mount pwd into /home/lutix/ws/src/target')
+    parser.add_argument('--verbose', action='store_true', help='Print full docker run command')
     parser.add_argument('--no-isolated', action='store_true', default=True, help='Do not run isolated')
     parser.add_argument('--no-gpu', action='store_true', help='Do not use GPUs')
     parser.add_argument('--no-it', action='store_true', help='Do not use interactive mode')
@@ -135,6 +136,8 @@ def main():
     args, unknown_args = parseArguments()
     cmd = buildDockerRunCommand(args, unknown_args)
     print(' '.join(cmd), file=sys.stderr)
+    if args.verbose:
+        print(' '.join(cmd))
 
 if __name__ == "__main__":
 
