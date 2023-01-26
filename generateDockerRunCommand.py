@@ -27,15 +27,6 @@ def parseArguments():
 
     return args, unknown
 
-def checkCommand(str, *args, **kwargs) -> bool:
-
-    try:
-        output = subprocess.run(str, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    except subprocess.CalledProcessError as e:
-        return False
-
-    return True
-
 def runCommand(str, *args, **kwargs) -> str:
     # wrapper around subprocess.xyz(*args, **kwargs)
 
@@ -64,7 +55,7 @@ def buildDockerRunCommand(args, unknown_args) -> str:
     # init docker run command
     print("Start new Container...")
     docker_command = ['docker', 'run']
-    
+
     # check for gpu support -> default: use gpu
     if not args.no_gpu:
         if ARCH == "x86_64":
@@ -136,10 +127,6 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         docker_command += [args.image]
     if args.cmd:
         docker_command += args.cmd
-    elif not args.no_it and unknown_args:
-        if not checkCommand(unknown_args[-1]):
-            print("\t - Using a bash")
-            docker_command += ['bash']
 
     return docker_command
 

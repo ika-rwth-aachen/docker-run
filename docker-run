@@ -63,10 +63,11 @@ if [ "${UPDATE}" = "1" ]; then
   docker pull ${IMAGE}
 fi
 
+
+# generate docker run command
 python3 $DIR/generateDockerRunCommand.py "${@}" 2> $DIR/.docker_cmd
 CMD=$(cat $DIR/.docker_cmd)
-echo $CMD
-#exec $CMD
-
-# cleanup
 rm -r $DIR/.docker_cmd
+
+# execude command
+exec $CMD
