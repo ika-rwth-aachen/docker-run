@@ -14,7 +14,7 @@ def parseArguments():
 
     parser.add_argument('--dev', action='store_true', help='Dev-Mode: Mount pwd into /home/lutix/ws/src/target')
     parser.add_argument('--verbose', action='store_true', help='Print full docker run command')
-    parser.add_argument('--no-isolated', action='store_true', default=True, help='Do not run isolated')
+    parser.add_argument('--no-isolated', action='store_true', help='Do not run isolated')
     parser.add_argument('--no-gpu', action='store_true', help='Do not use GPUs')
     parser.add_argument('--no-it', action='store_true', help='Do not use interactive mode')
     parser.add_argument('--no-x11', action='store_true', help='Do not use GUI forwarding')
@@ -42,22 +42,23 @@ def buildDockerRunCommand(args, unknown_args) -> str:
 
     OS = platform.uname().system
     ARCH = platform.uname().machine
+    EXEC = False
 
-    # check for running container -> docker exec
+    # check for running container
     runningContainers = runCommand('docker ps --format "{{.Names}}"')[0]
     runningContainers = runningContainers.split('\n')
     if args.name in runningContainers:
+        # init docker exec command
         print(f"Attatch to running container <{args.name}> ...")
-        cmd = ' '.join(args.cmd) if args.cmd else 'bash'
-        docker_command = ['docker', 'exec', '-it', args.name, cmd]
-        return docker_command
-
-    # init docker run command
-    print("Start new Container...")
-    docker_command = ['docker', 'run']
+        docker_command = ['docker', 'exec']
+        EXEC = True
+    else:
+        # init docker run command
+        print("Start new Container...")
+        docker_command = ['docker', 'run']
 
     # check for gpu support -> default: use gpu
-    if not args.no_gpu:
+    if not args.no_gpu and not EXEC:
         if ARCH == "x86_64":
             docker_command += ['--gpus', 'all'] # "normal" Workstation
             print("\t - with GPU-Support")
@@ -72,16 +73,16 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         docker_command += ['-it']
 
     # default: remove container after exiting
-    if not args.no_rm:
+    if not args.no_rm and not EXEC:
         print("\t - remove after exiting")
         docker_command += ['--rm']
 
-    if args.no_isolated:
+    if args.no_isolated and not EXEC:
         print("\t - not isolated")
         docker_command += ['--network', 'host']
 
     # default: run with gui forewarding
-    if not args.no_x11:
+    if not args.no_x11 and not EXEC:
         print("\t - With GUI-Forewarding")
         XSOCK='/tmp/.X11-unix'  # to support X11 forwarding in isolated containers on local host (not thorugh SSH)
         XAUTH=tempfile.NamedTemporaryFile(prefix='.docker.xauth.', delete=False)
@@ -116,17 +117,23 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         docker_command += ['-v', f'{os.getcwd()}:/home/lutix/ws/src/target']
 
     # add --name flag to docker_command
-    if args.name:
+    if args.name and not EXEC:
         docker_command += ['--name', args.name]
 
     # add all unknown args (docker run args) to docker_command
     docker_command += unknown_args
 
-    # add image and cmd to docker_command
-    if args.image:
+    # add image/name to docker_command
+    if EXEC:
+        docker_command += [args.name]
+    elif args.image:
         docker_command += [args.image]
+
+    # add cmd to docker_command
     if args.cmd:
         docker_command += args.cmd
+    elif EXEC:
+        docker_command += ['bash']
 
     return docker_command
 
