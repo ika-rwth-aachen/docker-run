@@ -111,6 +111,14 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         docker_command += ['-v', f'{XAUTH.name}:{XAUTH.name}']
         docker_command += ['-v', f'{XSOCK}:{XSOCK}']
 
+    # get timezone 
+    if OS == "Darwin":
+        # https://apple.stackexchange.com/questions/424957/non-sudo-alternatives-to-get-the-current-time-zone
+        TZ=runCommand("readlink /etc/localtime | sed 's#/var/db/timezone/zoneinfo/##g'")[0]
+    else:
+        TZ=runCommand("cat /etc/timezone")[0][:-1]
+    docker_command += ['-e', f'TZ={TZ}']
+
     # mount pwd into /home/lutix/ws/src/target
     if args.dev:
         print(f"\t - mounting `{os.getcwd()}` to `/home/lutix/ws/src/target`")
