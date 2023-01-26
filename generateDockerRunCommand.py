@@ -84,6 +84,10 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         print("\t - remove after exiting")
         docker_command += ['--rm']
 
+    if args.no_isolated:
+        print("\t - not isolated")
+        docker_command += ['--network', 'host']
+
     # default: run with gui forewarding
     if not args.no_x11:
         print("\t - With GUI-Forewarding")
