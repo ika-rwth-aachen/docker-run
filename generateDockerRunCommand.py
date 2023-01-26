@@ -4,6 +4,7 @@ import argparse
 import subprocess
 import tempfile
 import os
+import platform
 import sys
 
 
@@ -48,8 +49,8 @@ def runCommand(str, *args, **kwargs) -> str:
 
 def buildDockerRunCommand(args, unknown_args) -> str:
 
-    OS = subprocess.run(['uname', '-s'], capture_output=True).stdout.decode()
-    ARCH = subprocess.run(['uname', '-m'], capture_output=True).stdout.decode()
+    OS = platform.uname().system
+    ARCH = platform.uname().machine
 
     # check for running container -> docker exec
     runningContainers = runCommand('docker ps --format "{{.Names}}"')[0]
