@@ -65,7 +65,7 @@ fi
 
 
 # generate docker run command
-python3 $DIR/generateDockerRunCommand.py "${@}" 2> $DIR/.docker_cmd
+python3 $DIR/generateDockerCommand.py "${@}" 2> $DIR/.docker_cmd
 CMD=$(cat $DIR/.docker_cmd)
 rm -r $DIR/.docker_cmd
 

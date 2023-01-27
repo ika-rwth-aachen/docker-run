@@ -6,7 +6,7 @@ You can add `docker-run` to your `PATH` after you have cloned the repo. For this
 ```bash
 mkdir -p ~/.local/bin
 cp docker-run $HOME/.local/bin/docker-run
-cp generateDockerRunCommand.py $HOME/.local/bin/generateDockerRunCommand.py
+cp generateDockerCommand.py $HOME/.local/bin/generateDockerCommand.py
 ```
 
 ## Functionality
@@ -35,7 +35,7 @@ In addition to these defaults, for more complicated use cases, the image name an
 - `--cmd`: command to execute
 ## Help dialog
 ```
-usage: generateDockerRunCommand.py [-h] [--dev] [--verbose] [--no-isolated] [--no-gpu] [--no-it] [--no-x11] [--no-rm] [--name NAME] [--image IMAGE] [--cmd [CMD ...]]
+usage: generateDockerCommand.py [-h] [--dev] [--verbose] [--no-isolated] [--no-gpu] [--no-it] [--no-x11] [--no-rm] [--name NAME] [--image IMAGE] [--cmd [CMD ...]]
 
 optional arguments:
   -h, --help       show this help message and exit
