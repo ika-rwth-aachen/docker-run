@@ -6,7 +6,7 @@ import platform
 import subprocess
 import sys
 import tempfile
-from typing import Tuple
+from typing import List, Tuple
 
 
 def parseArguments():
@@ -17,12 +17,12 @@ def parseArguments():
                                                  "Note that the command is printed to `stderr`.")
 
     parser.add_argument('--dev', action='store_true', help='Mount current directory into `/home/lutix/ws/src/target`') # TODO: review thread
-    parser.add_argument('--verbose', action='store_true', help='Print full docker run command')
+    parser.add_argument('--verbose', action='store_true', help='Print generated command')
 
     parser.add_argument('--no-isolated', action='store_true', help='Disable automatic network isolation') # TODO: review thread
     parser.add_argument('--no-gpu', action='store_true', help='Disable automatic GPUs')
     parser.add_argument('--no-it', action='store_true', help='Disable automatic interactive tty')
-    parser.add_argument('--no-x11', action='store_true', help='Disable automatic GUI forwarding')
+    parser.add_argument('--no-x11', action='store_true', help='Disable automatic X11 GUI forwarding')
     parser.add_argument('--no-rm', action='store_true', help='Disable automatic container removal')
 
     parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='Container name; generates `docker exec` command if already running')
@@ -50,7 +50,33 @@ def runCommand(cmd: str, *args, **kwargs) -> Tuple[str, str]:
 
     return output.stdout.decode(), output.stderr.decode()
 
-def buildDockerCommand(args, unknown_args) -> str:
+def buildDockerCommand(image: str = "",
+                       cmd: str = "",
+                       name: str = "",
+                       isolated: bool = True,
+                       gpus: bool = True,
+                       interactive: bool = True,
+                       x11: bool = True,
+                       remove: bool = True,
+                       mount_pwd: bool = False,
+                       extra_args: List[str] = []) -> str:
+    """Builds an executable `docker run` or `docker exec` command based on the arguments.
+
+    Args:
+        image (str, optional): image ("")
+        cmd (str, optional): command ("")
+        name (str, optional): name ("")
+        isolated (bool, optional): enable network isolation (True)
+        gpus (bool, optional): enable GPU support (True)
+        interactive (bool, optional): enable interactive tty (True)
+        x11 (bool, optional): enable X11 GUI forwarding (True)
+        remove (bool, optional): enable container removal (True)
+        mount_pwd (bool, optional): enable volume mounting of current directory (False)
+        extra_args (List[str], optional): extra arguments to include in `docker` command ([])
+
+    Returns:
+        str: executable `docker run` or `docker exec` command
+    """
 
     OS = platform.uname().system
     ARCH = platform.uname().machine
@@ -59,42 +85,42 @@ def buildDockerCommand(args, unknown_args) -> str:
     # check for running container
     runningContainers = runCommand('docker ps --format "{{.Names}}"')[0]
     runningContainers = runningContainers.split('\n')
-    if args.name in runningContainers:
+    if name in runningContainers:
         # init docker exec command
-        print(f"Attatch to running container <{args.name}> ...")
-        cmd = ['docker', 'exec']
+        print(f"Attatch to running container <{name}> ...")
+        docker_cmd = ['docker', 'exec']
         EXEC = True
     else:
         # init docker run command
         print("Start new Container...")
-        cmd = ['docker', 'run']
+        docker_cmd = ['docker', 'run']
 
     # check for gpu support -> default: use gpu
-    if not args.no_gpu and not EXEC:
+    if gpus and not EXEC:
         if ARCH == "x86_64":
-            cmd += ['--gpus', 'all'] # "normal" Workstation
+            docker_cmd += ['--gpus', 'all'] # "normal" Workstation
             print("\t - with GPU-Support")
         elif ARCH == "aarch64":
-            cmd += ['--runtime', 'nvidia'] # Orin
+            docker_cmd += ['--runtime', 'nvidia'] # Orin
             print("\t - with GPU-Support")
         # else (e.g. Mac) -> no gpu
 
     # default: run in interactive mode
-    if not args.no_it:
+    if interactive:
         print("\t - interactive")
-        cmd += ['-it']
+        docker_cmd += ['-it']
 
     # default: remove container after exiting
-    if not args.no_rm and not EXEC:
+    if remove and not EXEC:
         print("\t - remove after exiting")
-        cmd += ['--rm']
+        docker_cmd += ['--rm']
 
-    if args.no_isolated and not EXEC:
+    if not isolated and not EXEC:
         print("\t - not isolated")
-        cmd += ['--network', 'host']
+        docker_cmd += ['--network', 'host']
 
     # default: run with gui forewarding
-    if not args.no_x11 and not EXEC:
+    if x11 and not EXEC:
         print("\t - With GUI-Forewarding")
         XSOCK='/tmp/.X11-unix'  # to support X11 forwarding in isolated containers on local host (not thorugh SSH)
         XAUTH=tempfile.NamedTemporaryFile(prefix='.docker.xauth.', delete=False)
@@ -105,15 +131,15 @@ def buildDockerCommand(args, unknown_args) -> str:
 
         DISPLAY=os.environ.get('DISPLAY')
         if DISPLAY is not None:
-            if not args.no_isolated:
+            if isolated:
                 DISPLAY="172.17.0.1:" + DISPLAY.split(":")[1] # replace with docker host ip if any host is given
             if OS =='Darwin':
                 DISPLAY="XY" # TODO
-            cmd += ['-e', f'DISPLAY={DISPLAY}']
-            cmd += ['-e', 'QT_X11_NO_MITSHM=1']
-            cmd += ['-e', f'XAUTHORITY={XAUTH.name}']
-            cmd += ['-v', f'{XAUTH.name}:{XAUTH.name}']
-            cmd += ['-v', f'{XSOCK}:{XSOCK}']
+            docker_cmd += ['-e', f'DISPLAY={DISPLAY}']
+            docker_cmd += ['-e', 'QT_X11_NO_MITSHM=1']
+            docker_cmd += ['-e', f'XAUTHORITY={XAUTH.name}']
+            docker_cmd += ['-v', f'{XAUTH.name}:{XAUTH.name}']
+            docker_cmd += ['-v', f'{XSOCK}:{XSOCK}']
 
     # get timezone 
     if OS == "Darwin":
@@ -121,40 +147,49 @@ def buildDockerCommand(args, unknown_args) -> str:
         TZ=runCommand("readlink /etc/localtime | sed 's#/var/db/timezone/zoneinfo/##g'")[0]
     else:
         TZ=runCommand("cat /etc/timezone")[0][:-1]
-    cmd += ['-e', f'TZ={TZ}']
+    docker_cmd += ['-e', f'TZ={TZ}']
 
     # mount pwd into /home/lutix/ws/src/target
-    if args.dev:
+    if mount_pwd:
         print(f"\t - mounting `{os.getcwd()}` to `/home/lutix/ws/src/target`")
-        cmd += ['-v', f'{os.getcwd()}:/home/lutix/ws/src/target']
+        docker_cmd += ['-v', f'{os.getcwd()}:/home/lutix/ws/src/target']
 
-    # add --name flag to cmd
-    if args.name and not EXEC:
-        cmd += ['--name', args.name]
+    # add --name flag to docker_cmd
+    if name and not EXEC:
+        docker_cmd += ['--name', name]
 
-    # add all unknown args (docker run args) to cmd
-    cmd += unknown_args
+    # add all extra args (docker run args) to docker_cmd
+    docker_cmd += extra_args
 
-    # add image/name to cmd
+    # add image/name to docker_cmd
     if EXEC:
-        cmd += [args.name]
-    elif args.image:
-        cmd += [args.image]
+        docker_cmd += [name]
+    elif image:
+        docker_cmd += [image]
 
-    # add cmd to cmd
-    if args.cmd:
-        cmd += args.cmd
+    # add cmd to docker_cmd
+    if cmd:
+        docker_cmd += cmd
     elif EXEC:
-        cmd += ['bash']
+        docker_cmd += ['bash']
 
-    return " ".join(cmd)
+    return " ".join(docker_cmd)
 
 
 def main():
 
     args, unknown_args = parseArguments()
-    cmd = buildDockerCommand(args, unknown_args)
-    print(cmd, file=sys.stderr)
+    cmd = buildDockerCommand(image=args.image,
+                             cmd=args.cmd,
+                             name=args.name,
+                             isolated=not args.no_isolated,
+                             gpus=not args.no_gpu,
+                             interactive=not args.no_it,
+                             x11=not args.no_x11,
+                             remove=not args.no_rm,
+                             mount_pwd=args.dev,
+                             extra_args=unknown_args)
+    print(cmd, file=sys.stderr) # TODO: review thread: how to handle actual errors, e.g. the system execution exception?
     if args.verbose:
         print(cmd)
 
