@@ -32,12 +32,13 @@ def parseArguments():
     parser.add_argument('--no-rm', action='store_true', help='Disable automatic container removal')
 
     parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='Container name; generates `docker exec` command if already running')
-    parser.add_argument('--image', help='Image name')
+    parser.add_argument('--image', help='Image name') # TODO: review thread: require image name?
     parser.add_argument('--cmd', nargs='*', default=[], help='Command to execute in container')
 
     args, unknown = parser.parse_known_args()
 
     return args, unknown
+
 
 def runCommand(cmd: str, *args, **kwargs) -> Tuple[str, str]:
     """Execute system command.
@@ -55,6 +56,7 @@ def runCommand(cmd: str, *args, **kwargs) -> Tuple[str, str]:
         raise RuntimeError(f"System command '{cmd}' failed: {exc}")
 
     return output.stdout.decode(), output.stderr.decode()
+
 
 def buildDockerCommand(image: str = "",
                        cmd: str = "",
@@ -84,74 +86,81 @@ def buildDockerCommand(image: str = "",
         str: executable `docker run` or `docker exec` command
     """
 
-    EXEC = False
-
     # check for running container
-    runningContainers = runCommand('docker ps --format "{{.Names}}"')[0]
-    runningContainers = runningContainers.split('\n')
-    if name in runningContainers:
-        # init docker exec command
-        print(f"Attatch to running container <{name}> ...")
-        docker_cmd = ["docker exec"]
-        EXEC = True
-    else:
-        # init docker run command
-        print("Start new Container...")
-        docker_cmd = ["docker run"]
+    new_container = False
+    running_containers = runCommand('docker ps --format "{{.Names}}"')[0].split('\n')
+    new_container = not (name in running_containers)
 
-    # name
-    if len(name) > 0 and not EXEC:
-        docker_cmd += nameFlags(name)
+    if new_container: # docker run
 
-    # timezone
-    docker_cmd += timezoneFlags()
+        print("Starting new container ...")
+        docker_cmd = ["docker", "run"]
 
-    # container removal
-    if remove:
-        print("\t - container removal")
-        docker_cmd += removeFlags()
+        # name
+        if name is not None and len(name) > 0:
+            docker_cmd += nameFlags(name)
+
+        # container removal
+        if remove:
+            print("\t - container removal")
+            docker_cmd += removeFlags()
+        
+        # network isolation
+        if not isolated:
+            print("\t - host network")
+            docker_cmd += hostNetworkFlags()
+        
+        # GPU support
+        if gpus:
+            print("\t - GPU support")
+            docker_cmd += gpuSupportFlags()
+        
+        # GUI forwarding
+        if x11:
+            print("\t - GUI fowarding")
+            docker_cmd += x11GuiForwardingFlags(isolated)
+        
+        # mount current directory to DEV_TARGET_MOUNT
+        if mount_pwd:
+            print(f"\t - current directory in `DEV_TARGET_MOUNT`")
+            docker_cmd += currentDirMountFlags()
+
+    else: # docker exec
+
+        print(f"Attaching to running container '{name}' ...")
+        docker_cmd = ["docker", "exec"]
 
     # interactive
     if interactive:
         print("\t - interactive")
         docker_cmd += interactiveFlags()
 
-    # network isolation
-    if not isolated and not EXEC:
-        print("\t - host network")
-        docker_cmd += hostNetworkFlags()
-
-    # GPU support
-    if gpus and not EXEC:
-        print("\t - GPU support")
-        docker_cmd += gpuSupportFlags()
-
-    # GUI forwarding
-    if x11 and not EXEC:
-        print("\t - GUI fowarding")
-        docker_cmd += x11GuiForwardingFlags(isolated)
-
-    # mount current directory to DEV_TARGET_MOUNT
-    if mount_pwd:
-        print(f"\t - current directory in `DEV_TARGET_MOUNT`")
-        docker_cmd += currentDirMountFlags()
-
+    # timezone
+    docker_cmd += timezoneFlags()
+    
     # append all extra args
     docker_cmd += extra_args
 
-    # image
-    if len(image) > 0 and not EXEC:
-        docker_cmd += [image]
+    if new_container: # docker run
 
-    # name for docker exec
-    if EXEC:
+        # image
+        if image is not None and len(image) > 0:
+            docker_cmd += [image]
+        
+        # command
+        if cmd is not None and len(cmd) > 0:
+            docker_cmd += [cmd]
+
+    else: # docker exec
+
+        # name
         docker_cmd += [name]
 
-    # command
-    if len(cmd) > 0:
-        docker_cmd += [cmd]
-    elif EXEC:
-        docker_cmd += ['bash']
+        # command
+        if cmd is not None and len(cmd) > 0:
+            docker_cmd += [cmd]
+        else:
+            docker_cmd += ['bash']
 
     return " ".join(docker_cmd)
 
