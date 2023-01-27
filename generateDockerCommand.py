@@ -228,8 +228,8 @@ def x11GuiForwardingFlags(isolated: bool = True) -> List[str]:
     flags.append(f"--env DISPLAY={display}")
     flags.append(f"--env XAUTHORITY={xauth}")
     flags.append(f"--env QT_X11_NO_MITSHM=1")
-    flags.append(f"--volume {xauth}={xauth}")
-    flags.append(f"--volume {xsock}={xsock}")
+    flags.append(f"--volume {xauth}:{xauth}")
+    flags.append(f"--volume {xsock}:{xsock}")
 
     return flags
 
