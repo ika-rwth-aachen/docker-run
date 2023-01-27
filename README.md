@@ -1,6 +1,6 @@
-# docker-run
+<img src="assets/logo.png" height=130 align="right">
 
-<img src="assets/logo.png" height=200 align="right" hspace=20>
+# docker-run
 
 Use `docker-run` to easily start and attach to Docker containers with useful predefined arguments.
 
