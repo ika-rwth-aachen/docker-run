@@ -33,22 +33,28 @@ In addition to these defaults, for more complicated use cases, the image name an
 
 - `--image`: image name
 - `--cmd`: command to execute
-## Help dialog
+
+## Usage
+
 ```
-usage: generateDockerCommand.py [-h] [--dev] [--verbose] [--no-isolated] [--no-gpu] [--no-it] [--no-x11] [--no-rm] [--name NAME] [--image IMAGE] [--cmd [CMD ...]]
+usage: generateDockerCommand.py [-h] [--dev] [--verbose] [--no-isolated] [--no-gpu] [--no-it] [--no-x11] [--no-rm] [--name NAME] [--image IMAGE] [--cmd [CMD [CMD ...]]]
+
+Generates a `docker run` with the following properties enabled by default: interactive tty, remove container after stop, GUI forwarding, GPU support, timezone. Generates a `docker exec` command to attach to a running container, if `--name` is specified. Note that the command is printed to
+`stderr`.
 
 optional arguments:
-  -h, --help       show this help message and exit
-  --dev            Dev-Mode: Mount pwd into /home/lutix/ws/src/target
-  --verbose        Print full docker run command
-  --no-isolated    Do not run isolated
-  --no-gpu         Do not use GPUs
-  --no-it          Do not use interactive mode
-  --no-x11         Do not use GUI forwarding
-  --no-rm          Do not remove Container after exiting
-  --name NAME      Name of the Container, which is started
-  --image IMAGE    Name of Image, which is used to start the container
-  --cmd [CMD ...]  Command, which is executed in the container
+  -h, --help            show this help message and exit
+  --dev                 Mount current directory into `/home/lutix/ws/src/target`
+  --verbose             Print generated command
+  --no-isolated         Disable automatic network isolation
+  --no-gpu              Disable automatic GPU support
+  --no-it               Disable automatic interactive tty
+  --no-x11              Disable automatic X11 GUI forwarding
+  --no-rm               Disable automatic container removal
+  --name NAME           Container name; generates `docker exec` command if already running
+  --image IMAGE         Image name
+  --cmd [CMD [CMD ...]]
+                        Command to execute in container
 ```
 
 ## Additional feature
