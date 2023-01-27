@@ -10,18 +10,23 @@ import sys
 
 def parseArguments():
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description="Generates a `docker run` with the following properties enabled by default: "
+                                                 "interactive tty, remove container after stop, GUI forwarding, GPU support. "
+                                                 "Generates a `docker exec` command to attach to a running container, if `--name` is specified. "
+                                                 "Note that the command is printed to `stderr`.")
 
-    parser.add_argument('--dev', action='store_true', help='Dev-Mode: Mount pwd into /home/lutix/ws/src/target')
+    parser.add_argument('--dev', action='store_true', help='Mount current directory into `/home/lutix/ws/src/target`') # TODO: review thread
     parser.add_argument('--verbose', action='store_true', help='Print full docker run command')
-    parser.add_argument('--no-isolated', action='store_true', help='Do not run isolated')
-    parser.add_argument('--no-gpu', action='store_true', help='Do not use GPUs')
-    parser.add_argument('--no-it', action='store_true', help='Do not use interactive mode')
-    parser.add_argument('--no-x11', action='store_true', help='Do not use GUI forwarding')
-    parser.add_argument('--no-rm', action='store_true', help='Do not remove Container after exiting')
-    parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='Name of the Container, which is started')
-    parser.add_argument('--image', help='Name of Image, which is used to start the container')
-    parser.add_argument('--cmd', nargs='*', help='Command, which is executed in the container')
+
+    parser.add_argument('--no-isolated', action='store_true', help='Disable automatic network isolation') # TODO: review thread
+    parser.add_argument('--no-gpu', action='store_true', help='Disable automatic GPUs')
+    parser.add_argument('--no-it', action='store_true', help='Disable automatic interactive tty')
+    parser.add_argument('--no-x11', action='store_true', help='Disable automatic GUI forwarding')
+    parser.add_argument('--no-rm', action='store_true', help='Disable automatic container removal')
+
+    parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='Container name; generates `docker exec` command if already running')
+    parser.add_argument('--image', help='Image name')
+    parser.add_argument('--cmd', nargs='*', help='Command to execute in container')
 
     args, unknown = parser.parse_known_args()
 
