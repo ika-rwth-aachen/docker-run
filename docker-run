@@ -72,4 +72,5 @@ CMD=$(cat $CMD_FILE)
 rm $CMD_FILE
 
 # execute command
+echo -e "================================================================================\n"
 exec $CMD

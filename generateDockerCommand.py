@@ -242,6 +242,24 @@ def currentDirMountFlags() -> List[str]:
     return [f"--volume {src}:{target}"]
 
 
+def printDockerCommand(cmd: str):
+    """Prints a docker command in human-readable way by line-breaking on each new argument.
+
+    Args:
+        cmd (str): docker command
+    """
+
+    components = cmd.split()
+    print(f"{components[0]} {components[1]}", end="")
+
+    for c in components[2:]:
+        if c.startswith("-"):
+            print(f" \\\n  {c}", end="")
+        else:
+            print(f" {c}", end="")
+    print("")
+
+
 def main():
 
     args, unknown_args = parseArguments()
@@ -257,7 +275,8 @@ def main():
                              extra_args=unknown_args)
     print(cmd, file=sys.stderr) # TODO: review thread: how to handle actual errors, e.g. the system execution exception?
     if args.verbose:
-        print(cmd)
+        printDockerCommand(cmd)
+
 
 if __name__ == "__main__":
 
