@@ -50,7 +50,7 @@ def runCommand(cmd: str, *args, **kwargs) -> Tuple[str, str]:
 
     return output.stdout.decode(), output.stderr.decode()
 
-def buildDockerRunCommand(args, unknown_args) -> str:
+def buildDockerCommand(args, unknown_args) -> str:
 
     OS = platform.uname().system
     ARCH = platform.uname().machine
@@ -62,36 +62,36 @@ def buildDockerRunCommand(args, unknown_args) -> str:
     if args.name in runningContainers:
         # init docker exec command
         print(f"Attatch to running container <{args.name}> ...")
-        docker_command = ['docker', 'exec']
+        cmd = ['docker', 'exec']
         EXEC = True
     else:
         # init docker run command
         print("Start new Container...")
-        docker_command = ['docker', 'run']
+        cmd = ['docker', 'run']
 
     # check for gpu support -> default: use gpu
     if not args.no_gpu and not EXEC:
         if ARCH == "x86_64":
-            docker_command += ['--gpus', 'all'] # "normal" Workstation
+            cmd += ['--gpus', 'all'] # "normal" Workstation
             print("\t - with GPU-Support")
         elif ARCH == "aarch64":
-            docker_command += ['--runtime', 'nvidia'] # Orin
+            cmd += ['--runtime', 'nvidia'] # Orin
             print("\t - with GPU-Support")
         # else (e.g. Mac) -> no gpu
 
     # default: run in interactive mode
     if not args.no_it:
         print("\t - interactive")
-        docker_command += ['-it']
+        cmd += ['-it']
 
     # default: remove container after exiting
     if not args.no_rm and not EXEC:
         print("\t - remove after exiting")
-        docker_command += ['--rm']
+        cmd += ['--rm']
 
     if args.no_isolated and not EXEC:
         print("\t - not isolated")
-        docker_command += ['--network', 'host']
+        cmd += ['--network', 'host']
 
     # default: run with gui forewarding
     if not args.no_x11 and not EXEC:
@@ -105,15 +105,15 @@ def buildDockerRunCommand(args, unknown_args) -> str:
 
         DISPLAY=os.environ.get('DISPLAY')
         if DISPLAY is not None:
-        if not args.no_isolated:
-            DISPLAY="172.17.0.1:" + DISPLAY.split(":")[1] # replace with docker host ip if any host is given
-        if OS =='Darwin':
-            DISPLAY="XY" # TODO
-        docker_command += ['-e', f'DISPLAY={DISPLAY}']
-        docker_command += ['-e', 'QT_X11_NO_MITSHM=1']
-        docker_command += ['-e', f'XAUTHORITY={XAUTH.name}']
-        docker_command += ['-v', f'{XAUTH.name}:{XAUTH.name}']
-        docker_command += ['-v', f'{XSOCK}:{XSOCK}']
+            if not args.no_isolated:
+                DISPLAY="172.17.0.1:" + DISPLAY.split(":")[1] # replace with docker host ip if any host is given
+            if OS =='Darwin':
+                DISPLAY="XY" # TODO
+            cmd += ['-e', f'DISPLAY={DISPLAY}']
+            cmd += ['-e', 'QT_X11_NO_MITSHM=1']
+            cmd += ['-e', f'XAUTHORITY={XAUTH.name}']
+            cmd += ['-v', f'{XAUTH.name}:{XAUTH.name}']
+            cmd += ['-v', f'{XSOCK}:{XSOCK}']
 
     # get timezone 
     if OS == "Darwin":
@@ -121,42 +121,42 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         TZ=runCommand("readlink /etc/localtime | sed 's#/var/db/timezone/zoneinfo/##g'")[0]
     else:
         TZ=runCommand("cat /etc/timezone")[0][:-1]
-    docker_command += ['-e', f'TZ={TZ}']
+    cmd += ['-e', f'TZ={TZ}']
 
     # mount pwd into /home/lutix/ws/src/target
     if args.dev:
         print(f"\t - mounting `{os.getcwd()}` to `/home/lutix/ws/src/target`")
-        docker_command += ['-v', f'{os.getcwd()}:/home/lutix/ws/src/target']
+        cmd += ['-v', f'{os.getcwd()}:/home/lutix/ws/src/target']
 
-    # add --name flag to docker_command
+    # add --name flag to cmd
     if args.name and not EXEC:
-        docker_command += ['--name', args.name]
+        cmd += ['--name', args.name]
 
-    # add all unknown args (docker run args) to docker_command
-    docker_command += unknown_args
+    # add all unknown args (docker run args) to cmd
+    cmd += unknown_args
 
-    # add image/name to docker_command
+    # add image/name to cmd
     if EXEC:
-        docker_command += [args.name]
+        cmd += [args.name]
     elif args.image:
-        docker_command += [args.image]
+        cmd += [args.image]
 
-    # add cmd to docker_command
+    # add cmd to cmd
     if args.cmd:
-        docker_command += args.cmd
+        cmd += args.cmd
     elif EXEC:
-        docker_command += ['bash']
+        cmd += ['bash']
 
-    return docker_command
+    return " ".join(cmd)
 
 
 def main():
 
     args, unknown_args = parseArguments()
-    cmd = buildDockerRunCommand(args, unknown_args)
-    print(' '.join(cmd), file=sys.stderr)
+    cmd = buildDockerCommand(args, unknown_args)
+    print(cmd, file=sys.stderr)
     if args.verbose:
-        print(' '.join(cmd))
+        print(cmd)
 
 if __name__ == "__main__":
 
