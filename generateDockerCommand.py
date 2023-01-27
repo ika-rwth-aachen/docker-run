@@ -25,7 +25,6 @@ def parseArguments():
     parser.add_argument('--dev', action='store_true', help=f'Mount current directory into `{DEV_TARGET_MOUNT}`') # TODO: review thread
     parser.add_argument('--verbose', action='store_true', help='Print generated command')
 
-    parser.add_argument('--no-isolated', action='store_true', help='Disable automatic network isolation') # TODO: review thread
     parser.add_argument('--no-gpu', action='store_true', help='Disable automatic GPU support')
     parser.add_argument('--no-it', action='store_true', help='Disable automatic interactive tty')
     parser.add_argument('--no-x11', action='store_true', help='Disable automatic X11 GUI forwarding')
@@ -61,7 +60,6 @@ def runCommand(cmd: str, *args, **kwargs) -> Tuple[str, str]:
 def buildDockerCommand(image: str = "",
                        cmd: str = "",
                        name: str = "",
-                       isolated: bool = True,
                        gpus: bool = True,
                        interactive: bool = True,
                        x11: bool = True,
@@ -74,7 +72,6 @@ def buildDockerCommand(image: str = "",
         image (str, optional): image ("")
         cmd (str, optional): command ("")
         name (str, optional): name ("")
-        isolated (bool, optional): enable network isolation (True)
         gpus (bool, optional): enable GPU support (True)
         interactive (bool, optional): enable interactive tty (True)
         x11 (bool, optional): enable X11 GUI forwarding (True)
@@ -105,11 +102,6 @@ def buildDockerCommand(image: str = "",
             print("\t - container removal")
             docker_cmd += removeFlags()
         
-        # network isolation
-        if not isolated:
-            print("\t - host network")
-            docker_cmd += hostNetworkFlags()
-        
         # GPU support
         if gpus:
             print("\t - GPU support")
@@ -118,7 +110,12 @@ def buildDockerCommand(image: str = "",
         # GUI forwarding
         if x11:
             print("\t - GUI fowarding")
-            docker_cmd += x11GuiForwardingFlags(isolated)
+            gui_forwarding_kwargs = {}
+            if "--network" in extra_args:
+                network_arg_index = extra_args.index("--network") + 1
+                if network_arg_index < len(extra_args):
+                    gui_forwarding_kwargs["docker_network"] = extra_args[network_arg_index]
+            docker_cmd += x11GuiForwardingFlags(**gui_forwarding_kwargs)
         
         # mount current directory to DEV_TARGET_MOUNT
         if mount_pwd:
@@ -190,11 +187,6 @@ def interactiveFlags() -> List[str]:
     return ["--interactive", "--tty"]
 
 
-def hostNetworkFlags() -> List[str]:
-
-    return ["--network host"]
-
-
 def gpuSupportFlags() -> List[str]:
 
     if ARCH == "x86_64":
@@ -206,7 +198,7 @@ def gpuSupportFlags() -> List[str]:
         return []
 
 
-def x11GuiForwardingFlags(isolated: bool = True) -> List[str]:
+def x11GuiForwardingFlags(docker_network: str = "bridge") -> List[str]:
 
     display = os.environ.get('DISPLAY')
     if display is None:
@@ -219,7 +211,7 @@ def x11GuiForwardingFlags(isolated: bool = True) -> List[str]:
     runCommand(f"xauth -f {xauth} nmerge - 2>/dev/null", input=xauth_output.encode())
     os.chmod(xauth, 0o777)
 
-    if isolated and not display.startswith(":"):
+    if docker_network != "host" and not display.startswith(":"):
         display="172.17.0.1:" + display.split(":")[1]
     if OS =='Darwin':
         display="host.docker.internal:" + display.split(":")[1]
@@ -266,7 +258,6 @@ def main():
     cmd = buildDockerCommand(image=args.image,
                              cmd=" ".join(args.cmd),
                              name=args.name,
-                             isolated=not args.no_isolated,
                              gpus=not args.no_gpu,
                              interactive=not args.no_it,
                              x11=not args.no_x11,

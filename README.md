@@ -42,7 +42,7 @@ Unlike with `docker run`, you can also set the Docker image and command via `--i
 ## Usage
 
 ```
-usage: generateDockerCommand.py [-h] [--dev] [--verbose] [--no-isolated] [--no-gpu] [--no-it] [--no-x11] [--no-rm] [--name NAME] [--image IMAGE] [--cmd [CMD [CMD ...]]]
+usage: generateDockerCommand.py [-h] [--dev] [--verbose] [--no-gpu] [--no-it] [--no-x11] [--no-rm] [--name NAME] [--image IMAGE] [--cmd [CMD [CMD ...]]]
 
 Generates a `docker run` with the following properties enabled by default: interactive tty, remove container after stop, GUI forwarding, GPU support, timezone. Generates a `docker exec` command to attach to a running container, if `--name` is specified. Note that the command is printed to
 `stderr`.
@@ -51,7 +51,6 @@ optional arguments:
   -h, --help            show this help message and exit
   --dev                 Mount current directory into `/home/lutix/ws/src/target`
   --verbose             Print generated command
-  --no-isolated         Disable automatic network isolation
   --no-gpu              Disable automatic GPU support
   --no-it               Disable automatic interactive tty
   --no-x11              Disable automatic X11 GUI forwarding
