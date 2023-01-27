@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import argparse
-import subprocess
-import tempfile
 import os
 import platform
+import subprocess
 import sys
+import tempfile
 from typing import Tuple
 
 
