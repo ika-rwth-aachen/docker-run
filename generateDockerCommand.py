@@ -9,25 +9,31 @@ import tempfile
 from typing import List, Tuple
 
 
+DEV_TARGET_MOUNT = "/home/lutix/ws/src/target"
+
+OS = platform.uname().system
+ARCH = platform.uname().machine
+
+
 def parseArguments():
 
     parser = argparse.ArgumentParser(description="Generates a `docker run` with the following properties enabled by default: "
-                                                 "interactive tty, remove container after stop, GUI forwarding, GPU support. "
+                                                 "interactive tty, remove container after stop, GUI forwarding, GPU support, timezone. "
                                                  "Generates a `docker exec` command to attach to a running container, if `--name` is specified. "
                                                  "Note that the command is printed to `stderr`.")
 
-    parser.add_argument('--dev', action='store_true', help='Mount current directory into `/home/lutix/ws/src/target`') # TODO: review thread
+    parser.add_argument('--dev', action='store_true', help=f'Mount current directory into `{DEV_TARGET_MOUNT}`') # TODO: review thread
     parser.add_argument('--verbose', action='store_true', help='Print generated command')
 
     parser.add_argument('--no-isolated', action='store_true', help='Disable automatic network isolation') # TODO: review thread
-    parser.add_argument('--no-gpu', action='store_true', help='Disable automatic GPUs')
+    parser.add_argument('--no-gpu', action='store_true', help='Disable automatic GPU support')
     parser.add_argument('--no-it', action='store_true', help='Disable automatic interactive tty')
     parser.add_argument('--no-x11', action='store_true', help='Disable automatic X11 GUI forwarding')
     parser.add_argument('--no-rm', action='store_true', help='Disable automatic container removal')
 
     parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='Container name; generates `docker exec` command if already running')
     parser.add_argument('--image', help='Image name')
-    parser.add_argument('--cmd', nargs='*', help='Command to execute in container')
+    parser.add_argument('--cmd', nargs='*', default=[], help='Command to execute in container')
 
     args, unknown = parser.parse_known_args()
 
@@ -78,8 +84,6 @@ def buildDockerCommand(image: str = "",
         str: executable `docker run` or `docker exec` command
     """
 
-    OS = platform.uname().system
-    ARCH = platform.uname().machine
     EXEC = False
 
     # check for running container
@@ -88,99 +92,152 @@ def buildDockerCommand(image: str = "",
     if name in runningContainers:
         # init docker exec command
         print(f"Attatch to running container <{name}> ...")
-        docker_cmd = ['docker', 'exec']
+        docker_cmd = ["docker exec"]
         EXEC = True
     else:
         # init docker run command
         print("Start new Container...")
-        docker_cmd = ['docker', 'run']
+        docker_cmd = ["docker run"]
 
-    # check for gpu support -> default: use gpu
-    if gpus and not EXEC:
-        if ARCH == "x86_64":
-            docker_cmd += ['--gpus', 'all'] # "normal" Workstation
-            print("\t - with GPU-Support")
-        elif ARCH == "aarch64":
-            docker_cmd += ['--runtime', 'nvidia'] # Orin
-            print("\t - with GPU-Support")
-        # else (e.g. Mac) -> no gpu
+    # name
+    if len(name) > 0 and not EXEC:
+        docker_cmd += nameFlags(name)
 
-    # default: run in interactive mode
+    # timezone
+    docker_cmd += timezoneFlags()
+
+    # container removal
+    if remove:
+        print("\t - container removal")
+        docker_cmd += removeFlags()
+
+    # interactive
     if interactive:
         print("\t - interactive")
-        docker_cmd += ['-it']
+        docker_cmd += interactiveFlags()
 
-    # default: remove container after exiting
-    if remove and not EXEC:
-        print("\t - remove after exiting")
-        docker_cmd += ['--rm']
-
+    # network isolation
     if not isolated and not EXEC:
-        print("\t - not isolated")
-        docker_cmd += ['--network', 'host']
+        print("\t - host network")
+        docker_cmd += hostNetworkFlags()
 
-    # default: run with gui forewarding
+    # GPU support
+    if gpus and not EXEC:
+        print("\t - GPU support")
+        docker_cmd += gpuSupportFlags()
+
+    # GUI forwarding
     if x11 and not EXEC:
-        print("\t - With GUI-Forewarding")
-        XSOCK='/tmp/.X11-unix'  # to support X11 forwarding in isolated containers on local host (not thorugh SSH)
-        XAUTH=tempfile.NamedTemporaryFile(prefix='.docker.xauth.', delete=False)
-        xauth_output = subprocess.run('xauth nlist $DISPLAY', stdout=subprocess.PIPE, shell=True, env=os.environ)
-        xauth_output = "ffff" + xauth_output.stdout.decode()[4:]
-        subprocess.run(f'xauth -f {XAUTH.name} nmerge - 2>/dev/null', input=xauth_output.encode(), shell=True)
-        os.chmod(XAUTH.name, 0o777)
+        print("\t - GUI fowarding")
+        docker_cmd += x11GuiForwardingFlags(isolated)
 
-        DISPLAY=os.environ.get('DISPLAY')
-        if DISPLAY is not None:
-            if isolated:
-                DISPLAY="172.17.0.1:" + DISPLAY.split(":")[1] # replace with docker host ip if any host is given
-            if OS =='Darwin':
-                DISPLAY="XY" # TODO
-            docker_cmd += ['-e', f'DISPLAY={DISPLAY}']
-            docker_cmd += ['-e', 'QT_X11_NO_MITSHM=1']
-            docker_cmd += ['-e', f'XAUTHORITY={XAUTH.name}']
-            docker_cmd += ['-v', f'{XAUTH.name}:{XAUTH.name}']
-            docker_cmd += ['-v', f'{XSOCK}:{XSOCK}']
-
-    # get timezone 
-    if OS == "Darwin":
-        # https://apple.stackexchange.com/questions/424957/non-sudo-alternatives-to-get-the-current-time-zone
-        TZ=runCommand("readlink /etc/localtime | sed 's#/var/db/timezone/zoneinfo/##g'")[0]
-    else:
-        TZ=runCommand("cat /etc/timezone")[0][:-1]
-    docker_cmd += ['-e', f'TZ={TZ}']
-
-    # mount pwd into /home/lutix/ws/src/target
+    # mount current directory to DEV_TARGET_MOUNT
     if mount_pwd:
-        print(f"\t - mounting `{os.getcwd()}` to `/home/lutix/ws/src/target`")
-        docker_cmd += ['-v', f'{os.getcwd()}:/home/lutix/ws/src/target']
+        print(f"\t - current directory in `DEV_TARGET_MOUNT`")
+        docker_cmd += currentDirMountFlags()
 
-    # add --name flag to docker_cmd
-    if name and not EXEC:
-        docker_cmd += ['--name', name]
-
-    # add all extra args (docker run args) to docker_cmd
+    # append all extra args
     docker_cmd += extra_args
 
-    # add image/name to docker_cmd
-    if EXEC:
-        docker_cmd += [name]
-    elif image:
+    # image
+    if len(image) > 0 and not EXEC:
         docker_cmd += [image]
 
-    # add cmd to docker_cmd
-    if cmd:
-        docker_cmd += cmd
+    # name for docker exec
+    if EXEC:
+        docker_cmd += [name]
+
+    # command
+    if len(cmd) > 0:
+        docker_cmd += [cmd]
     elif EXEC:
         docker_cmd += ['bash']
 
     return " ".join(docker_cmd)
 
 
+def nameFlags(name: str) -> List[str]:
+
+    return [f"--name {name}"]
+
+
+def timezoneFlags() -> List[str]:
+
+    if OS == "Darwin":
+        tz = runCommand("readlink /etc/localtime | sed 's#/var/db/timezone/zoneinfo/##g'")[0]
+    else:
+        tz = runCommand("cat /etc/timezone")[0][:-1]
+
+    return [f"--env TZ={tz}"]
+
+
+def removeFlags() -> List[str]:
+
+    return ["--rm"]
+
+
+def interactiveFlags() -> List[str]:
+
+    return ["--interactive", "--tty"]
+
+
+def hostNetworkFlags() -> List[str]:
+
+    return ["--network host"]
+
+
+def gpuSupportFlags() -> List[str]:
+
+    if ARCH == "x86_64":
+        return ["--gpus all"]
+    elif ARCH == "aarch64" and OS == "Linux":
+        return ["--runtime nvidia"]
+    else:
+        print(f"GPU not supported by `docker-run` on {OS} with {ARCH} architecture")
+        return []
+
+
+def x11GuiForwardingFlags(isolated: bool = True) -> List[str]:
+
+    display = os.environ.get('DISPLAY')
+    if display is None:
+        return []
+
+    xsock = "/tmp/.X11-unix"
+    xauth = tempfile.NamedTemporaryFile(prefix='.docker.xauth.', delete=False).name
+    xauth_output = runCommand("xauth nlist $DISPLAY", env=os.environ)[0]
+    xauth_output = "ffff" + xauth_output.stdout.decode()[4:]
+    runCommand(f"xauth -f {xauth} nmerge - 2>/dev/null", input=xauth_output.encode())
+    os.chmod(xauth, 0o777)
+
+    if isolated:
+        display="172.17.0.1:" + display.split(":")[1]
+    if OS =='Darwin':
+        display="host.docker.internal:" + display.split(":")[1]
+
+    flags = []
+    flags.append(f"--env DISPLAY={display}")
+    flags.append(f"--env XAUTHORITY={xauth}")
+    flags.append(f"--env QT_X11_NO_MITSHM=1")
+    flags.append(f"--volume {xauth}={xauth}")
+    flags.append(f"--volume {xsock}={xsock}")
+
+    return flags
+
+
+def currentDirMountFlags() -> List[str]:
+
+    src = os.getcwd()
+    target = "DEV_TARGET_MOUNT"
+
+    return [f"--volume {src}:{target}"]
+
+
 def main():
 
     args, unknown_args = parseArguments()
     cmd = buildDockerCommand(image=args.image,
-                             cmd=args.cmd,
+                             cmd=" ".join(args.cmd),
                              name=args.name,
                              isolated=not args.no_isolated,
                              gpus=not args.no_gpu,
