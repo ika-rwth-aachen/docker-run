@@ -104,11 +104,11 @@ def buildDockerRunCommand(args, unknown_args) -> str:
         os.chmod(XAUTH.name, 0o777)
 
         DISPLAY=os.environ.get('DISPLAY')
+        if DISPLAY is not None:
         if not args.no_isolated:
             DISPLAY="172.17.0.1:" + DISPLAY.split(":")[1] # replace with docker host ip if any host is given
         if OS =='Darwin':
             DISPLAY="XY" # TODO
-
         docker_command += ['-e', f'DISPLAY={DISPLAY}']
         docker_command += ['-e', 'QT_X11_NO_MITSHM=1']
         docker_command += ['-e', f'XAUTHORITY={XAUTH.name}']
