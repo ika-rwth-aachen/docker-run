@@ -6,6 +6,7 @@ import tempfile
 import os
 import platform
 import sys
+from typing import Tuple
 
 
 def parseArguments():
@@ -32,14 +33,20 @@ def parseArguments():
 
     return args, unknown
 
-def runCommand(str, *args, **kwargs) -> str:
-    # wrapper around subprocess.xyz(*args, **kwargs)
+def runCommand(cmd: str, *args, **kwargs) -> Tuple[str, str]:
+    """Execute system command.
+
+    Args:
+        cmd (str): system command
+
+    Returns:
+        Tuple[str, str]: stdout, stderr output
+    """
 
     try:
-        output = subprocess.run(str, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    except subprocess.CalledProcessError as e:
-        print("An error has occurred while running the command: ", e)
-        exit(1)
+        output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(f"System command '{cmd}' failed: {exc}")
 
     return output.stdout.decode(), output.stderr.decode()
 
