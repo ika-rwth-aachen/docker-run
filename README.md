@@ -1,38 +1,41 @@
 # docker-run
-Use `docker-run` to start docker container with predefined default arguments via cli. This primarily includes GUI forewarding.
+
+Use `docker-run` to easily start and attach to Docker containers with useful predefined arguments.
 
 ## Installation
-You can add `docker-run` to your `PATH` after you have cloned the repo. For this you only need to execute:
+
+Add `docker-run` to your `PATH` to enable to use it from anywhere.
+
 ```bash
+# $ docker-run/
 mkdir -p ~/.local/bin
-cp docker-run $HOME/.local/bin/docker-run
-cp generateDockerCommand.py $HOME/.local/bin/generateDockerCommand.py
+cp docker-run generateDockerCommand.py ~/.local/bin/
 ```
 
 ## Functionality
-In general, you can pass the same arguments to `docker-run` that you can pass to `docker run`. The syntax stays the same. For example:
+
+`docker-run` is designed to be used the same way as the official [`docker run`](https://docs.docker.com/engine/reference/commandline/run/) and [`docker exec`](https://docs.docker.com/engine/reference/commandline/exec/) commands.
+
+In general, you can pass the same arguments to `docker-run` as you would pass to `docker run`, e.g.
+
 ```bash
-docker-run -p 80:80 --user USER IMAGE_NAME CMD
+docker-run --volume $(pwd):/volume ubuntu ls /volume
 ```
 
-However, there are a few things that `docker-run` does by default, unlike `docker run`. These are:
+In addition to the arguments you are passing, `docker-run` however also enables the following features by default. Each of these default features can be disabled, see [Usage](#usage).
+- container removal after exit (`--rm`)
+- interactive tty (`--interactive --tty`)
+- current directory name as container name (`--name`)
+- GPU support (`--gpus all` / `--runtime nvidia`)
+- X11 GUI forwarding
 
-- setting container name to the current folder name
-  - `--name $FOLDER`
-- enables GPU support
-  - `--gpus all` (amd64) / `--runtime nvidia` (arm64, Jetson Orin)
-- automatically removes container after exiting
-  - `--rm`
-- start container interactive and allocate a pseudo-TTY
-  - `-i -t`
-- enables GUI forewarding
+If a container with matching name is already running, `docker-run` will execute a command in that container via `docker exec` instead. This lets you quickly attach to a running container without passing any command, e.g.
 
-Each of these defaults can be overwritten or disabled by an argument.
+```bash
+docker-run --name my-running-container
+```
 
-In addition to these defaults, for more complicated use cases, the image name and the command to execute can also be defined explicitly using the two args:
-
-- `--image`: image name
-- `--cmd`: command to execute
+Unlike with `docker run`, you can also set the Docker image and command via `--image` and `--command` arguments, see [Usage](#usage). This may be required for more complex use cases.
 
 ## Usage
 
@@ -57,11 +60,8 @@ optional arguments:
                         Command to execute in container
 ```
 
-## Additional feature
-Images stored in the ika GitLab registry are automatically updated when needed.
-- `$GITLAB_ACCESS_TOKEN`, `$GITLAB_PROJECT_ID` and `$GITLAB_REGISTRY_ID` are need to be set
+## Additional Features
 
-Example:
-```bash
-GITLAB_ACCESS_TOKEN=abcd GITLAB_PROJECT_ID=1000 GITLAB_REGISTRY_ID=10 docker-run gitlab.ika.rwth-aachen.de:5050/automated-driving/docker/ros1 bash
-```
+### Image Auto-Update
+
+If the environment variables `$GITLAB_ACCESS_TOKEN`, `$GITLAB_PROJECT_ID`, and `$GITLAB_REGISTRY_ID` are set, `docker-run` will check for new versions of the specified image and give you the option to pull.
