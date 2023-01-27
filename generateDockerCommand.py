@@ -90,7 +90,7 @@ def buildDockerCommand(image: str = "",
 
     if new_container: # docker run
 
-        print("Starting new container ...")
+        print("Starting new container ..." , file=sys.stderr)
         docker_cmd = ["docker", "run"]
 
         # name
@@ -99,17 +99,17 @@ def buildDockerCommand(image: str = "",
 
         # container removal
         if remove:
-            print("\t - container removal")
+            print("\t - container removal", file=sys.stderr)
             docker_cmd += removeFlags()
         
         # GPU support
         if gpus:
-            print("\t - GPU support")
+            print("\t - GPU support", file=sys.stderr)
             docker_cmd += gpuSupportFlags()
         
         # GUI forwarding
         if x11:
-            print("\t - GUI fowarding")
+            print("\t - GUI fowarding", file=sys.stderr)
             gui_forwarding_kwargs = {}
             if "--network" in extra_args:
                 network_arg_index = extra_args.index("--network") + 1
@@ -119,17 +119,17 @@ def buildDockerCommand(image: str = "",
         
         # mount current directory to DEV_TARGET_MOUNT
         if mount_pwd:
-            print(f"\t - current directory in `DEV_TARGET_MOUNT`")
+            print(f"\t - current directory in `DEV_TARGET_MOUNT`", file=sys.stderr)
             docker_cmd += currentDirMountFlags()
 
     else: # docker exec
 
-        print(f"Attaching to running container '{name}' ...")
+        print(f"Attaching to running container '{name}' ...", file=sys.stderr)
         docker_cmd = ["docker", "exec"]
 
     # interactive
     if interactive:
-        print("\t - interactive")
+        print("\t - interactive", file=sys.stderr)
         docker_cmd += interactiveFlags()
 
     # timezone
@@ -194,7 +194,7 @@ def gpuSupportFlags() -> List[str]:
     elif ARCH == "aarch64" and OS == "Linux":
         return ["--runtime nvidia"]
     else:
-        print(f"GPU not supported by `docker-run` on {OS} with {ARCH} architecture")
+        print(f"GPU not supported by `docker-run` on {OS} with {ARCH} architecture", file=sys.stderr)
         return []
 
 
@@ -242,14 +242,14 @@ def printDockerCommand(cmd: str):
     """
 
     components = cmd.split()
-    print(f"{components[0]} {components[1]}", end="")
+    print(f"{components[0]} {components[1]}", end="", file=sys.stderr)
 
     for c in components[2:]:
         if c.startswith("-"):
-            print(f" \\\n  {c}", end="")
+            print(f" \\\n  {c}", end="", file=sys.stderr)
         else:
-            print(f" {c}", end="")
-    print("")
+            print(f" {c}", end="", file=sys.stderr)
+    print("", file=sys.stderr)
 
 
 def main():
@@ -264,7 +264,7 @@ def main():
                              remove=not args.no_rm,
                              mount_pwd=args.dev,
                              extra_args=unknown_args)
-    print(cmd, file=sys.stderr) # TODO: review thread: how to handle actual errors, e.g. the system execution exception?
+    print(cmd) # TODO: review thread: how to handle actual errors, e.g. the system execution exception?
     if args.verbose:
         printDockerCommand(cmd)
 
