@@ -17,12 +17,12 @@ ARCH = platform.uname().machine
 
 def parseArguments():
 
-    parser = argparse.ArgumentParser(description="Generates a `docker run` with the following properties enabled by default: "
+    parser = argparse.ArgumentParser(description="Generates a `docker run` command with the following properties enabled by default: "
                                                  "interactive tty, remove container after stop, GUI forwarding, GPU support, timezone. "
                                                  "Generates a `docker exec` command to attach to a running container, if `--name` is specified. "
-                                                 "Note that the command is printed to `stderr`.")
+                                                 "Note that the command is printed to `stdout` and any verbose information is printed to `stderr`.")
 
-    parser.add_argument('--dev', action='store_true', help=f'Mount current directory into `{DEV_TARGET_MOUNT}`') # TODO: review thread
+    parser.add_argument('--dev', action='store_true', help=f'Mount current directory into `{DEV_TARGET_MOUNT}`')
     parser.add_argument('--verbose', action='store_true', help='Print generated command')
 
     parser.add_argument('--no-gpu', action='store_true', help='Disable automatic GPU support')
@@ -31,7 +31,7 @@ def parseArguments():
     parser.add_argument('--no-rm', action='store_true', help='Disable automatic container removal')
 
     parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='Container name; generates `docker exec` command if already running')
-    parser.add_argument('--image', help='Image name') # TODO: review thread: require image name?
+    parser.add_argument('--image', help='Image name')
     parser.add_argument('--cmd', nargs='*', default=[], help='Command to execute in container')
 
     args, unknown = parser.parse_known_args()
@@ -264,7 +264,7 @@ def main():
                              remove=not args.no_rm,
                              mount_pwd=args.dev,
                              extra_args=unknown_args)
-    print(cmd) # TODO: review thread: how to handle actual errors, e.g. the system execution exception?
+    print(cmd)
     if args.verbose:
         printDockerCommand(cmd)
 
