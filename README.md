@@ -37,7 +37,7 @@ If a container with matching name is already running, `docker-run` will execute 
 docker-run --name my-running-container
 ```
 
-Unlike with `docker run`, you can also set the Docker image and command via `--image` and `--command` arguments, see [Usage](#usage). This may be required for more complex use cases.
+Unlike with `docker run`, you can also set the Docker image and command via `--image` and `--cmd` arguments, see [Usage](#usage). This may be required for more complex use cases.
 
 ## Usage
 
