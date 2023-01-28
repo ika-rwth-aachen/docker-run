@@ -39,6 +39,15 @@ def parseArguments():
     return args, unknown
 
 
+def log(msg: str, *args, **kwargs):
+    """Log message to stderr.
+    Args:
+        msg (str): log message
+    """
+
+    print(msg, file=sys.stderr, *args, **kwargs)
+
+
 def runCommand(cmd: str, *args, **kwargs) -> Tuple[str, str]:
     """Execute system command.
 
@@ -90,7 +99,7 @@ def buildDockerCommand(image: str = "",
 
     if new_container: # docker run
 
-        print("Starting new container ..." , file=sys.stderr)
+        log("Starting new container ..." )
         docker_cmd = ["docker", "run"]
 
         # name
@@ -99,42 +108,42 @@ def buildDockerCommand(image: str = "",
 
         # container removal
         if remove:
-            print("\t - container removal", file=sys.stderr)
+            log("\t - container removal")
             docker_cmd += removeFlags()
-        
+
         # GPU support
         if gpus:
-            print("\t - GPU support", file=sys.stderr)
+            log("\t - GPU support")
             docker_cmd += gpuSupportFlags()
-        
+
         # GUI forwarding
         if x11:
-            print("\t - GUI fowarding", file=sys.stderr)
+            log("\t - GUI fowarding")
             gui_forwarding_kwargs = {}
             if "--network" in extra_args:
                 network_arg_index = extra_args.index("--network") + 1
                 if network_arg_index < len(extra_args):
                     gui_forwarding_kwargs["docker_network"] = extra_args[network_arg_index]
             docker_cmd += x11GuiForwardingFlags(**gui_forwarding_kwargs)
-        
+
         # mount current directory to DEV_TARGET_MOUNT
         if mount_pwd:
-            print(f"\t - current directory in `DEV_TARGET_MOUNT`", file=sys.stderr)
+            log(f"\t - current directory in `DEV_TARGET_MOUNT`")
             docker_cmd += currentDirMountFlags()
 
     else: # docker exec
 
-        print(f"Attaching to running container '{name}' ...", file=sys.stderr)
+        log(f"Attaching to running container '{name}' ...")
         docker_cmd = ["docker", "exec"]
 
     # interactive
     if interactive:
-        print("\t - interactive", file=sys.stderr)
+        log("\t - interactive")
         docker_cmd += interactiveFlags()
 
     # timezone
     docker_cmd += timezoneFlags()
-    
+
     # append all extra args
     docker_cmd += extra_args
 
@@ -143,7 +152,7 @@ def buildDockerCommand(image: str = "",
         # image
         if image is not None and len(image) > 0:
             docker_cmd += [image]
-        
+
         # command
         if cmd is not None and len(cmd) > 0:
             docker_cmd += [cmd]
@@ -194,7 +203,7 @@ def gpuSupportFlags() -> List[str]:
     elif ARCH == "aarch64" and OS == "Linux":
         return ["--runtime nvidia"]
     else:
-        print(f"GPU not supported by `docker-run` on {OS} with {ARCH} architecture", file=sys.stderr)
+        log(f"GPU not supported by `docker-run` on {OS} with {ARCH} architecture")
         return []
 
 
@@ -242,14 +251,14 @@ def printDockerCommand(cmd: str):
     """
 
     components = cmd.split()
-    print(f"{components[0]} {components[1]}", end="", file=sys.stderr)
+    log(f"{components[0]} {components[1]}", end="")
 
     for c in components[2:]:
         if c.startswith("-"):
-            print(f" \\\n  {c}", end="", file=sys.stderr)
+            log(f" \\\n  {c}", end="")
         else:
-            print(f" {c}", end="", file=sys.stderr)
-    print("", file=sys.stderr)
+            log(f" {c}", end="")
+    log("")
 
 
 def main():
