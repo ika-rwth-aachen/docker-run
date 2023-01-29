@@ -61,7 +61,7 @@ def runCommand(cmd: str, *args, **kwargs) -> Tuple[str, str]:
     try:
         output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, *args, **kwargs)
     except subprocess.CalledProcessError as exc:
-        raise RuntimeError(f"System command '{cmd}' failed: {exc}")
+        raise RuntimeError(f"System command '{cmd}' failed: {exc.stderr.decode()}")
 
     return output.stdout.decode(), output.stderr.decode()
 
