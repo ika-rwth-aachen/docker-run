@@ -115,10 +115,9 @@ def buildDockerCommand(image: str = "",
         log("Starting new container ..." )
         docker_cmd = ["docker", "run"]
 
-        # update
-        update = False if any("--pull" in arg or "--help" in arg for arg in extra_args) else True
-        if update:
-            docker_cmd += updateFlags()
+        # pull
+        if "--pull" not in extra_args:
+            docker_cmd += pullFlags()
 
         # name
         if name is not None and len(name) > 0:
@@ -189,9 +188,9 @@ def buildDockerCommand(image: str = "",
     return " ".join(docker_cmd)
 
 
-def updateFlags():
+def pullFlags():
     
-    log("Update image? (y/N): ")
+    log("Add '--pull always' to pull the latest image version? (y/N): ", end="")
     answer = input()
     if answer.lower() == "y":
         return ["--pull always"]
