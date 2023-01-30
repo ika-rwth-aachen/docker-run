@@ -115,6 +115,11 @@ def buildDockerCommand(image: str = "",
         log("Starting new container ..." )
         docker_cmd = ["docker", "run"]
 
+        # update
+        update = False if any("--pull" in arg or "--help" in arg for arg in extra_args) else True
+        if update:
+            docker_cmd += updateFlags()
+
         # name
         if name is not None and len(name) > 0:
             docker_cmd += nameFlags(name)
@@ -182,6 +187,16 @@ def buildDockerCommand(image: str = "",
             docker_cmd += ['bash']
 
     return " ".join(docker_cmd)
+
+
+def updateFlags():
+    
+    log("Update image? (y/N): ")
+    answer = input()
+    if answer.lower() == "y":
+        return ["--pull always"]
+    else:
+        return []
 
 
 def nameFlags(name: str) -> List[str]:
