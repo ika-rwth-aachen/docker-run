@@ -216,7 +216,7 @@ def x11GuiForwardingFlags(docker_network: str = "bridge") -> List[str]:
     xsock = "/tmp/.X11-unix"
     xauth = tempfile.NamedTemporaryFile(prefix='.docker.xauth.', delete=False).name
     xauth_display = display if OS != "Darwin" else runCommand("ifconfig en0 | grep 'inet '")[0].split()[1] + ":0"
-    xauth_output = "ffff" + runCommand(f"xauth nlist {xauth_display}", env=os.environ)[0][4:]
+    xauth_output = "ffff" + runCommand(f"xauth nlist {xauth_display}")[0][4:]
     runCommand(f"xauth -f {xauth} nmerge - 2>/dev/null", input=xauth_output.encode())
     os.chmod(xauth, 0o777)
 
