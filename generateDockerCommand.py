@@ -42,6 +42,7 @@ def parseArguments():
     parser.add_argument('--no-it', action='store_true', help='disable automatic interactive tty')
     parser.add_argument('--no-x11', action='store_true', help='disable automatic X11 GUI forwarding')
     parser.add_argument('--no-rm', action='store_true', help='disable automatic container removal')
+    parser.add_argument('--no-name', action='store_true', help='disable automatic container name (current directory)')
 
     parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='container name; generates `docker exec` command if already running')
     parser.add_argument('--image', help='image name')
@@ -291,6 +292,8 @@ def printDockerCommand(cmd: str):
 def main():
 
     args, unknown_args = parseArguments()
+    if args.no_name:
+        args.name = None
     cmd = buildDockerCommand(image=args.image,
                              cmd=" ".join(args.cmd),
                              name=args.name,
