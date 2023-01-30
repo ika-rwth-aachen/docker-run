@@ -42,27 +42,28 @@ Unlike with `docker run`, you can also set the Docker image and command via `--i
 ## Usage
 
 ```
-usage: generateDockerCommand.py [-h] [--dev] [--verbose] [--no-gpu] [--no-it] [--no-x11] [--no-rm] [--name NAME] [--image IMAGE] [--cmd [CMD [CMD ...]]]
+usage: docker-run [--help] [--dev] [--verbose] [--no-gpu] [--no-it] [--no-x11]
+                  [--no-rm] [--no-name] [--name NAME] [--image IMAGE]
+                  [--cmd [CMD ...]]
 
-Generates a `docker run` with the following properties enabled by default: interactive tty, remove container after stop, GUI forwarding, GPU support, timezone. Generates a `docker exec` command to attach to a running container, if `--name` is specified. Note that the command is printed to
-`stderr`.
+Executes `docker run` with the following features enabled by default, each of
+which can be disabled individually: container removal after exit, interactive
+tty, current directory name as container name, GPU support, X11 GUI
+forwarding. Passes any additional arguments to `docker run`. Executes `docker
+exec` instead if a container with the specified name (`--name`) is already
+running.
 
 optional arguments:
-  -h, --help            show this help message and exit
-  --dev                 Mount current directory into `/home/lutix/ws/src/target`
-  --verbose             Print generated command
-  --no-gpu              Disable automatic GPU support
-  --no-it               Disable automatic interactive tty
-  --no-x11              Disable automatic X11 GUI forwarding
-  --no-rm               Disable automatic container removal
-  --name NAME           Container name; generates `docker exec` command if already running
-  --image IMAGE         Image name
-  --cmd [CMD [CMD ...]]
-                        Command to execute in container
+  --help           show this help message and exit
+  --dev            mount current directory into `/home/lutix/ws/src/target`
+  --verbose        print generated command
+  --no-gpu         disable automatic GPU support
+  --no-it          disable automatic interactive tty
+  --no-x11         disable automatic X11 GUI forwarding
+  --no-rm          disable automatic container removal
+  --no-name        disable automatic container name (current directory)
+  --name NAME      container name; generates `docker exec` command if already
+                   running
+  --image IMAGE    image name
+  --cmd [CMD ...]  command to execute in container
 ```
-
-## Additional Features
-
-### Image Auto-Update
-
-If the environment variables `$GITLAB_ACCESS_TOKEN`, `$GITLAB_PROJECT_ID`, and `$GITLAB_REGISTRY_ID` are set, `docker-run` will check for new versions of the specified image and give you the option to pull.
