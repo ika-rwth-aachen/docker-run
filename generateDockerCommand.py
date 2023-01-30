@@ -17,7 +17,17 @@ ARCH = platform.uname().machine
 
 def parseArguments():
 
-    parser = argparse.ArgumentParser(description="Generates a `docker run` command with the following properties enabled by default: "
+    class DockerRunArgumentParser(argparse.ArgumentParser):
+
+        def print_help(self, file=None):
+            super().print_help(file=sys.stderr if file is None else file)
+
+        def format_help(self):
+            docker_run_help = runCommand("docker run --help")[0]
+            separator = f"\n{'-' * 80}\n\n"
+            return docker_run_help + separator + super().format_help()
+
+    parser = DockerRunArgumentParser(description="Generates a `docker run` command with the following properties enabled by default: "
                                                  "interactive tty, remove container after stop, GUI forwarding, GPU support, timezone. "
                                                  "Generates a `docker exec` command to attach to a running container, if `--name` is specified. "
                                                  "Note that the command is printed to `stdout` and any verbose information is printed to `stderr`.")
