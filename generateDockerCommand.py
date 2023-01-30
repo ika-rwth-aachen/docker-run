@@ -27,22 +27,25 @@ def parseArguments():
             separator = f"\n{'-' * 80}\n\n"
             return docker_run_help + separator + super().format_help()
 
-    parser = DockerRunArgumentParser(description="Generates a `docker run` command with the following properties enabled by default: "
-                                                 "interactive tty, remove container after stop, GUI forwarding, GPU support, timezone. "
-                                                 "Generates a `docker exec` command to attach to a running container, if `--name` is specified. "
-                                                 "Note that the command is printed to `stdout` and any verbose information is printed to `stderr`.")
+    parser = DockerRunArgumentParser(prog="docker-run",
+                                     description="Executes `docker run` with the following features enabled by default, each of which can be disabled individually: "
+                                                 "container removal after exit, interactive tty, current directory name as container name, GPU support, X11 GUI forwarding. "
+                                                 "Passes any additional arguments to `docker run`. "
+                                                 "Executes `docker exec` instead if a container with the specified name (`--name`) is already running.",
+                                     add_help=False)
+    parser.add_argument("--help", action="help", default=argparse.SUPPRESS, help="show this help message and exit")
 
-    parser.add_argument('--dev', action='store_true', help=f'Mount current directory into `{DEV_TARGET_MOUNT}`')
-    parser.add_argument('--verbose', action='store_true', help='Print generated command')
+    parser.add_argument('--dev', action='store_true', help=f'mount current directory into `{DEV_TARGET_MOUNT}`')
+    parser.add_argument('--verbose', action='store_true', help='print generated command')
 
-    parser.add_argument('--no-gpu', action='store_true', help='Disable automatic GPU support')
-    parser.add_argument('--no-it', action='store_true', help='Disable automatic interactive tty')
-    parser.add_argument('--no-x11', action='store_true', help='Disable automatic X11 GUI forwarding')
-    parser.add_argument('--no-rm', action='store_true', help='Disable automatic container removal')
+    parser.add_argument('--no-gpu', action='store_true', help='disable automatic GPU support')
+    parser.add_argument('--no-it', action='store_true', help='disable automatic interactive tty')
+    parser.add_argument('--no-x11', action='store_true', help='disable automatic X11 GUI forwarding')
+    parser.add_argument('--no-rm', action='store_true', help='disable automatic container removal')
 
-    parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='Container name; generates `docker exec` command if already running')
-    parser.add_argument('--image', help='Image name')
-    parser.add_argument('--cmd', nargs='*', default=[], help='Command to execute in container')
+    parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='container name; generates `docker exec` command if already running')
+    parser.add_argument('--image', help='image name')
+    parser.add_argument('--cmd', nargs='*', default=[], help='command to execute in container')
 
     args, unknown = parser.parse_known_args()
 
