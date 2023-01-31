@@ -33,9 +33,9 @@ def parseArguments():
                                                  "Passes any additional arguments to `docker run`. "
                                                  "Executes `docker exec` instead if a container with the specified name (`--name`) is already running.",
                                      add_help=False)
-    parser.add_argument("--help", action="help", default=argparse.SUPPRESS, help="show this help message and exit")
+    parser.add_argument('--help', action='help', default=argparse.SUPPRESS, help='show this help message and exit')
 
-    parser.add_argument('--dev', action='store_true', help=f'mount current directory into `{DEV_TARGET_MOUNT}`')
+    parser.add_argument('--mwd', action='store_true', help=f'mount current directory into `{DEV_TARGET_MOUNT}`')
     parser.add_argument('--verbose', action='store_true', help='print generated command')
 
     parser.add_argument('--no-gpu', action='store_true', help='disable automatic GPU support')
@@ -265,10 +265,7 @@ def x11GuiForwardingFlags(docker_network: str = "bridge") -> List[str]:
 
 def currentDirMountFlags() -> List[str]:
 
-    src = os.getcwd()
-    target = "DEV_TARGET_MOUNT"
-
-    return [f"--volume {src}:{target}"]
+    return [f"--volume {os.getcwd()}:{DEV_TARGET_MOUNT}"]
 
 
 def printDockerCommand(cmd: str):
@@ -301,7 +298,7 @@ def main():
                              interactive=not args.no_it,
                              x11=not args.no_x11,
                              remove=not args.no_rm,
-                             mount_pwd=args.dev,
+                             mount_pwd=args.mwd,
                              extra_args=unknown_args)
     print(cmd)
     if args.verbose:
