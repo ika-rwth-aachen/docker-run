@@ -42,7 +42,7 @@ Unlike with `docker run`, you can also set the Docker image and command via `--i
 ## Usage
 
 ```
-usage: docker-run [--help] [--dev] [--verbose] [--no-gpu] [--no-it] [--no-x11]
+usage: docker-run [--help] [--mwd] [--verbose] [--no-gpu] [--no-it] [--no-x11]
                   [--no-rm] [--no-name] [--name NAME] [--image IMAGE]
                   [--cmd [CMD ...]]
 
@@ -55,7 +55,7 @@ running.
 
 optional arguments:
   --help           show this help message and exit
-  --dev            mount current directory into `/home/lutix/ws/src/target`
+  --mwd            mount current directory into `/home/lutix/ws/src/target`
   --verbose        print generated command
   --no-gpu         disable automatic GPU support
   --no-it          disable automatic interactive tty
