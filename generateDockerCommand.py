@@ -9,7 +9,7 @@ import tempfile
 from typing import List, Tuple
 
 
-DEV_TARGET_MOUNT = "/home/lutix/ws/src/target"
+DEV_TARGET_MOUNT = "/docker-ros/ws/src/target"
 
 OS = platform.uname().system
 ARCH = platform.uname().machine
