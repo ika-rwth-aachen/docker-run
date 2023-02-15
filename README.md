@@ -43,8 +43,8 @@ Unlike with `docker run`, you can also set the Docker image and command via `--i
 
 ```
 usage: docker-run [--help] [--mwd] [--verbose] [--no-gpu] [--no-it] [--no-x11]
-                  [--no-rm] [--no-name] [--name NAME] [--image IMAGE]
-                  [--cmd [CMD ...]]
+                  [--no-rm] [--no-user] [--no-name] [--name NAME]
+                  [--image IMAGE] [--cmd [CMD ...]]
 
 Executes `docker run` with the following features enabled by default, each of
 which can be disabled individually: container removal after exit, interactive
@@ -55,12 +55,13 @@ running.
 
 optional arguments:
   --help           show this help message and exit
-  --mwd            mount current directory into `/home/lutix/ws/src/target`
+  --mwd            mount current directory into `/docker-ros/ws/src/target`
   --verbose        print generated command
   --no-gpu         disable automatic GPU support
   --no-it          disable automatic interactive tty
   --no-x11         disable automatic X11 GUI forwarding
   --no-rm          disable automatic container removal
+  --no-user        disable parsing local user ids into container
   --no-name        disable automatic container name (current directory)
   --name NAME      container name; generates `docker exec` command if already
                    running

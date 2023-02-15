@@ -9,7 +9,7 @@ import tempfile
 from typing import List, Tuple
 
 
-DEV_TARGET_MOUNT = "/home/lutix/ws/src/target"
+DEV_TARGET_MOUNT = "/docker-ros/ws/src/target"
 
 OS = platform.uname().system
 ARCH = platform.uname().machine
@@ -42,6 +42,7 @@ def parseArguments():
     parser.add_argument('--no-it', action='store_true', help='disable automatic interactive tty')
     parser.add_argument('--no-x11', action='store_true', help='disable automatic X11 GUI forwarding')
     parser.add_argument('--no-rm', action='store_true', help='disable automatic container removal')
+    parser.add_argument('--no-user', action='store_true', help='disable passing local UID/GID into container')
     parser.add_argument('--no-name', action='store_true', help='disable automatic container name (current directory)')
 
     parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='container name; generates `docker exec` command if already running')
@@ -87,6 +88,7 @@ def buildDockerCommand(image: str = "",
                        interactive: bool = True,
                        x11: bool = True,
                        remove: bool = True,
+                       user: bool = True,
                        mount_pwd: bool = False,
                        extra_args: List[str] = []) -> str:
     """Builds an executable `docker run` or `docker exec` command based on the arguments.
@@ -99,6 +101,7 @@ def buildDockerCommand(image: str = "",
         interactive (bool, optional): enable interactive tty (True)
         x11 (bool, optional): enable X11 GUI forwarding (True)
         remove (bool, optional): enable container removal (True)
+        user (bool, optional): enable passing local UID/GID into container (True)
         mount_pwd (bool, optional): enable volume mounting of current directory (False)
         extra_args (List[str], optional): extra arguments to include in `docker` command ([])
 
@@ -128,6 +131,10 @@ def buildDockerCommand(image: str = "",
         if remove:
             log("\t - container removal")
             docker_cmd += removeFlags()
+
+        # local user ids
+        if user:
+            docker_cmd += userFlags()
 
         # GPU support
         if gpus:
@@ -218,6 +225,14 @@ def removeFlags() -> List[str]:
 
     return ["--rm"]
 
+def userFlags() -> List[str]:
+
+    flags = []
+    flags.append(f"--env DOCKER_UID={os.getuid()}")
+    flags.append(f"--env DOCKER_GID={os.getgid()}")
+
+    return flags
+
 
 def interactiveFlags() -> List[str]:
 
@@ -298,6 +313,7 @@ def main():
                              interactive=not args.no_it,
                              x11=not args.no_x11,
                              remove=not args.no_rm,
+                             user=not args.no_user,
                              mount_pwd=args.mwd,
                              extra_args=unknown_args)
     print(cmd)
