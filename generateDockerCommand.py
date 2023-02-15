@@ -42,7 +42,7 @@ def parseArguments():
     parser.add_argument('--no-it', action='store_true', help='disable automatic interactive tty')
     parser.add_argument('--no-x11', action='store_true', help='disable automatic X11 GUI forwarding')
     parser.add_argument('--no-rm', action='store_true', help='disable automatic container removal')
-    parser.add_argument('--no-user', action='store_true', help='disable parsing local user ids into container')
+    parser.add_argument('--no-user', action='store_true', help='disable passing local UID/GID into container')
     parser.add_argument('--no-name', action='store_true', help='disable automatic container name (current directory)')
 
     parser.add_argument('--name', default=os.path.basename(os.getcwd()), help='container name; generates `docker exec` command if already running')
@@ -101,7 +101,7 @@ def buildDockerCommand(image: str = "",
         interactive (bool, optional): enable interactive tty (True)
         x11 (bool, optional): enable X11 GUI forwarding (True)
         remove (bool, optional): enable container removal (True)
-        user (bool, optional): enable local user in container (True)
+        user (bool, optional): enable passing local UID/GID into container (True)
         mount_pwd (bool, optional): enable volume mounting of current directory (False)
         extra_args (List[str], optional): extra arguments to include in `docker` command ([])
 
@@ -134,7 +134,6 @@ def buildDockerCommand(image: str = "",
 
         # local user ids
         if user:
-            log("\t - container removal")
             docker_cmd += userFlags()
 
         # GPU support
@@ -314,7 +313,7 @@ def main():
                              interactive=not args.no_it,
                              x11=not args.no_x11,
                              remove=not args.no_rm,
-                             user= not args.no_user,
+                             user=not args.no_user,
                              mount_pwd=args.mwd,
                              extra_args=unknown_args)
     print(cmd)
