@@ -12,6 +12,8 @@ Add `docker-run` to your `PATH` to enable to use it from anywhere.
 # $ docker-run/
 mkdir -p ~/.local/bin
 cp docker-run generateDockerCommand.py ~/.local/bin/
+sudo cp _docker-run /etc/bash_completion.d/docker-run
+source /etc/bash_completion
 ```
 
 ## Functionality
