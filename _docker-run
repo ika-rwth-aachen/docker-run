@@ -1,8 +1,15 @@
 _docker_run()
 {
-    local cur=${COMP_WORDS[COMP_CWORD]}
-    local images="$(docker images -q | awk '{print $1}')"
-    COMPREPLY=( $(compgen -W "${images}" -- ${cur}) )
+  # Retrieve the current word being completed
+  local cur="${COMP_WORDS[COMP_CWORD]}"
+  _get_comp_words_by_ref -n : cur
+
+  # Define an array of possible completions based on the current word
+  local completions=$(docker images --format "{{.Repository}}:{{.Tag}}")
+
+  # Use the `compgen` command to generate completion suggestions based on the array
+  COMPREPLY=($(compgen -W "${completions[*]}" "${cur}"))
+  __ltrim_colon_completions "$cur"
 }
 
 complete -F _docker_run docker-run
