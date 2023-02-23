@@ -5,11 +5,34 @@ _docker_run()
   _get_comp_words_by_ref -n : cur
 
   # Define an array of possible completions based on the current word
-  local completions=$(docker images --format "{{.Repository}}:{{.Tag}}")
+  local completions
+  if [[ ${COMP_WORDS[COMP_CWORD-1]} = "--image" ]]; then
+    completions=$(docker images --format "{{.Repository}}:{{.Tag}}")
+  elif [[ ${COMP_WORDS[COMP_CWORD-1]} = "--cmd" ]]; then
+    # TODO: add completions for commands (e.g. default cmd)
+    completions=("bash" "etc")
+  elif [[ ${cur} = -* ]]; then
+    # TODO: add completions for flags (e.g. via help function)
+    completions=("")
+  elif [[ ${COMP_WORDS[COMP_CWORD-1]} = -* ]]; then
+    # TODO: add completions for args
+    completions=("")
+  else
+    completions=$(docker images --format "{{.Repository}}:{{.Tag}}")
+    for word in "${COMP_WORDS[@]}"; do
+      if [[ " ${completions[*]} " =~ " ${word} " ]]; then
+        # TODO: add completion for this case
+        completions=("")
+        break
+      fi
+    done
+  fi
 
   # Use the `compgen` command to generate completion suggestions based on the array
-  COMPREPLY=($(compgen -W "${completions[*]}" "${cur}"))
-  __ltrim_colon_completions "$cur"
+  if [[ ${completions[*]} != "" ]]; then
+    COMPREPLY=($(compgen -W "${completions[*]}" "${cur}"))
+    __ltrim_colon_completions "$cur"
+  fi
 }
 
 complete -F _docker_run docker-run
