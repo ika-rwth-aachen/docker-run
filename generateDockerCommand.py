@@ -161,6 +161,10 @@ def buildDockerCommand(image: str = "",
         log(f"Attaching to running container '{name}' ...")
         docker_cmd = ["docker", "exec"]
 
+        # local user ids
+        if user:
+            docker_cmd += userExecFlags()
+
     # interactive
     if interactive:
         log("\t - interactive")
@@ -197,7 +201,7 @@ def buildDockerCommand(image: str = "",
 
 
 def pullFlags():
-    
+
     log("Add '--pull always' to pull the latest image version? (y/N): ", end="")
     answer = input()
     if answer.lower() == "y":
@@ -227,12 +231,11 @@ def removeFlags() -> List[str]:
 
 def userFlags() -> List[str]:
 
-    flags = []
-    flags.append(f"--env DOCKER_UID={os.getuid()}")
-    flags.append(f"--env DOCKER_GID={os.getgid()}")
+    return [f"--env DOCKER_UID={os.getuid()}", f"--env DOCKER_GID={os.getgid()}"]
 
-    return flags
+def userExecFlags() -> List[str]:
 
+    return [f"--user {os.getuid()}:{os.getgid()}"]
 
 def interactiveFlags() -> List[str]:
 
