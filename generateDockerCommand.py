@@ -119,10 +119,6 @@ def buildDockerCommand(image: str = "",
         log("Starting new container ..." )
         docker_cmd = ["docker", "run"]
 
-        # pull
-        if "--pull" not in extra_args:
-            docker_cmd += pullFlags()
-
         # name
         if name is not None and len(name) > 0:
             docker_cmd += nameFlags(name)
@@ -196,16 +192,6 @@ def buildDockerCommand(image: str = "",
     return " ".join(docker_cmd)
 
 
-def pullFlags():
-    
-    log("Add '--pull always' to pull the latest image version? (y/N): ", end="")
-    answer = input()
-    if answer.lower() == "y":
-        return ["--pull always"]
-    else:
-        return []
-
-
 def nameFlags(name: str) -> List[str]:
 
     return [f"--name {name}"]
@@ -224,6 +210,7 @@ def timezoneFlags() -> List[str]:
 def removeFlags() -> List[str]:
 
     return ["--rm"]
+
 
 def userFlags() -> List[str]:
 
