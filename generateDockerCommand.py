@@ -158,7 +158,7 @@ def buildDockerCommand(image: str = "",
         docker_cmd = ["docker", "exec"]
 
         # local user ids
-        if user:
+        if user and runCommand("docker exec docker-run bash -c \"echo \$DOCKER_ROS\"")[0] == "true":
             docker_cmd += userExecFlags()
 
     # interactive
