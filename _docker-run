@@ -1,38 +1,39 @@
-_docker_run()
-{
-  # Retrieve the current word being completed
-  local cur="${COMP_WORDS[COMP_CWORD]}"
-  _get_comp_words_by_ref -n : cur
+source /usr/share/bash-completion/completions/docker
 
-  # Define an array of possible completions based on the current word
-  local completions
-  if [[ ${COMP_WORDS[COMP_CWORD-1]} = "--image" ]]; then
-    completions=$(docker images --format "{{.Repository}}:{{.Tag}}")
-  elif [[ ${COMP_WORDS[COMP_CWORD-1]} = "--cmd" ]]; then
-    # TODO: add completions for commands (e.g. default cmd)
-    completions=("bash" "etc")
-  elif [[ ${cur} = -* ]]; then
-    # TODO: add completions for flags (e.g. via help function)
-    completions=("")
-  elif [[ ${COMP_WORDS[COMP_CWORD-1]} = -* ]]; then
-    # TODO: add completions for args
-    completions=("")
-  else
-    completions=$(docker images --format "{{.Repository}}:{{.Tag}}")
-    for word in "${COMP_WORDS[@]}"; do
-      if [[ " ${completions[*]} " =~ " ${word} " ]]; then
-        # TODO: add completion for this case
-        completions=("")
-        break
-      fi
-    done
-  fi
+_docker-run() {
+	local previous_extglob_setting=$(shopt -p extglob)
+	shopt -s extglob
 
-  # Use the `compgen` command to generate completion suggestions based on the array
-  if [[ ${completions[*]} != "" ]]; then
-    COMPREPLY=($(compgen -W "${completions[*]}" "${cur}"))
-    __ltrim_colon_completions "$cur"
-  fi
+	COMPREPLY=()
+	local cur prev words cword
+	_get_comp_words_by_ref -n : cur prev words cword
+
+	local command='run' command_pos=0 subcommand_pos
+	local counter=1
+	while [ "$counter" -lt "$cword" ]; do
+		case "${words[$counter]}" in
+      run)
+				return 0
+				;;
+			-*)
+				;;
+			=)
+				(( counter++ ))
+				;;
+			*)
+				command="${words[$counter]}"
+				command_pos=$counter
+				break
+				;;
+		esac
+		(( counter++ ))
+	done
+
+	local completions_func=_docker_${command//-/_}
+	declare -F $completions_func >/dev/null && $completions_func
+
+	eval "$previous_extglob_setting"
+	return 0
 }
 
-complete -F _docker_run docker-run
+complete -F _docker-run docker-run
