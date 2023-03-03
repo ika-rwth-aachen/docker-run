@@ -11,6 +11,8 @@ Add `docker-run` to your `PATH` to enable to use it from anywhere.
 ```bash
 # $ docker-run/
 echo "export PATH=\"$(pwd)/bin:"'$PATH"' >> ~/.bashrc
+echo "source $(pwd)/bash-completion/_docker-run" >> ~/.bashrc
+source ~/.bashrc
 ```
 
 ## Functionality

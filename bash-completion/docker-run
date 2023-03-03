@@ -1,0 +1,58 @@
+source /usr/share/bash-completion/completions/docker
+
+_docker-run() {
+
+	local previous_extglob_setting=$(shopt -p extglob)
+	shopt -s extglob
+
+	COMPREPLY=()
+	local cur prev words cword
+	_get_comp_words_by_ref -n : cur prev words cword
+
+	local command='run' command_pos=0 subcommand_pos
+	local counter=1
+	while [ "$counter" -lt "$cword" ]; do
+		case "${words[$counter]}" in
+      run)
+				return 0
+				;;
+			-*)
+				;;
+			=)
+				(( counter++ ))
+				;;
+			*)
+				command="${words[$counter]}"
+				command_pos=$counter
+				break
+				;;
+		esac
+		(( counter++ ))
+	done
+
+	local completions_func=_docker_${command//-/_}
+	declare -F $completions_func >/dev/null && $completions_func
+
+  if [[ ${cur} == -* ]]; then
+    COMPREPLY+=(
+      "--cmd"
+      "--help"
+      "--image"
+      "--mwd"
+      "--no-gpu"
+      "--no-gpu"
+      "--no-it"
+      "--no-name"
+      "--no-rm"
+      "--no-user"
+      "--no-x11"
+      "--verbose"
+    )
+    COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+  fi
+
+	eval "$previous_extglob_setting"
+	return 0
+}
+
+complete -F _docker-run docker-run
