@@ -1,6 +1,7 @@
 source /usr/share/bash-completion/completions/docker
 
 _docker-run() {
+
 	local previous_extglob_setting=$(shopt -p extglob)
 	shopt -s extglob
 
@@ -31,6 +32,24 @@ _docker-run() {
 
 	local completions_func=_docker_${command//-/_}
 	declare -F $completions_func >/dev/null && $completions_func
+
+  if [[ ${cur} == -* ]]; then
+    COMPREPLY+=(
+      "--cmd"
+      "--help"
+      "--image"
+      "--mwd"
+      "--no-gpu"
+      "--no-gpu"
+      "--no-it"
+      "--no-name"
+      "--no-rm"
+      "--no-user"
+      "--no-x11"
+      "--verbose"
+    )
+    COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+  fi
 
 	eval "$previous_extglob_setting"
 	return 0
