@@ -10,8 +10,7 @@ Add `docker-run` to your `PATH` to enable to use it from anywhere.
 
 ```bash
 # $ docker-run/
-mkdir -p ~/.local/bin
-cp docker-run generateDockerCommand.py ~/.local/bin/
+echo "export PATH=\"$(pwd)/bin:"'$PATH"' >> ~/.bashrc
 ```
 
 ## Functionality
