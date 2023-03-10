@@ -2,65 +2,65 @@ source /usr/share/bash-completion/completions/docker
 
 _docker-run() {
 
-	local previous_extglob_setting=$(shopt -p extglob)
-	shopt -s extglob
+    local previous_extglob_setting=$(shopt -p extglob)
+    shopt -s extglob
 
-	COMPREPLY=()
-	local cur prev words cword
-	_get_comp_words_by_ref -n : cur prev words cword
+    COMPREPLY=()
+    local cur prev words cword
+    _get_comp_words_by_ref -n : cur prev words cword
 
-	local command='run' command_pos=0 subcommand_pos
-	local counter=1
-	local unknown_commmand=0
-	while [ "$counter" -lt "$cword" ]; do
-		case "${words[$counter]}" in
+    local command='run' command_pos=0 subcommand_pos
+    local counter=1
+    local unknown_commmand=0
+    while [ "$counter" -lt "$cword" ]; do
+        case "${words[$counter]}" in
       run)
-				return 0
-				;;
-			-*)
-				;;
-			=)
-				(( counter++ ))
-				;;
-			*)
-				command="${words[$counter]}"
-				command_pos=$counter
-				unknown_commmand=1
-				break
-				;;
-		esac
-		(( counter++ ))
-	done
+                return 0
+                ;;
+            -*)
+                ;;
+            =)
+                (( counter++ ))
+                ;;
+            *)
+                command="${words[$counter]}"
+                command_pos=$counter
+                unknown_commmand=1
+                break
+                ;;
+        esac
+        (( counter++ ))
+    done
 
-	local completions_func=_docker_${command//-/_}
-	declare -F $completions_func >/dev/null && $completions_func
+    local completions_func=_docker_${command//-/_}
+    declare -F $completions_func >/dev/null && $completions_func
 
-  if [[ ${cur} == -* ]]; then
-    COMPREPLY+=(
-      "--cmd"
-      "--help"
-      "--image"
-      "--mwd"
-      "--no-gpu"
-      "--no-gpu"
-      "--no-it"
-      "--no-name"
-      "--no-rm"
-      "--no-user"
-      "--no-x11"
-      "--verbose"
-    )
-    COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
-  elif [[ ${prev} == "--name" ]]; then
-	COMPREPLY=$(docker ps --format '{{.Names}}')
-	COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
-  elif [[ ${unknown_commmand} == 1 ]]; then
-	COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $command)
-	COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
-  fi
+    if [[ ${cur} == -* ]]; then
+        COMPREPLY+=(
+        "--cmd"
+        "--help"
+        "--image"
+        "--mwd"
+        "--no-gpu"
+        "--no-gpu"
+        "--no-it"
+        "--no-name"
+        "--no-rm"
+        "--no-user"
+        "--no-x11"
+        "--verbose"
+        )
+        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+    elif [[ ${prev} == "--name" ]]; then
+        COMPREPLY=$(docker ps --format '{{.Names}}')
+        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+    elif [[ ${unknown_commmand} == 1 ]]; then
+        COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $command)
+        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+    fi
 
-	eval "$previous_extglob_setting"
-	return 0
+    eval "$previous_extglob_setting"
+    return 0
 }
 
 complete -F _docker-run docker-run
