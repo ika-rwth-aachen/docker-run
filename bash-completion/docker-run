@@ -14,7 +14,7 @@ _docker-run() {
     local unknown_commmand=0
     while [ "$counter" -lt "$cword" ]; do
         case "${words[$counter]}" in
-      run)
+            run)
                 return 0
                 ;;
             -*)
