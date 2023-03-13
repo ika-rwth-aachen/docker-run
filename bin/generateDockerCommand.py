@@ -222,7 +222,7 @@ def userFlags() -> List[str]:
 
 def userExecFlags() -> List[str]:
 
-    return [f"--user {os.getuid()}:{os.getgid()}"]
+    return [f"--user {os.getuid()}"]
 
 def interactiveFlags() -> List[str]:
 
