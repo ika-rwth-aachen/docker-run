@@ -11,7 +11,6 @@ _docker-run() {
 
     local command='run' command_pos=0 subcommand_pos
     local counter=1
-    local unknown_commmand=0
     while [ "$counter" -lt "$cword" ]; do
         case "${words[$counter]}" in
             run)
@@ -25,15 +24,21 @@ _docker-run() {
             *)
                 command="${words[$counter]}"
                 command_pos=$counter
-                unknown_commmand=1
                 break
                 ;;
         esac
         (( counter++ ))
     done
 
-    local completions_func=_docker_${command//-/_}
-    declare -F $completions_func >/dev/null && $completions_func
+    local docker_images=($(docker images --format "{{.Repository}}:{{.Tag}}"))
+    local docker_images_no_tag=($(docker images --format "{{.Repository}}"))
+    if [[ " ${docker_images[*]} " =~ " ${command} " ]]; then
+        COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $command)
+        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+    elif [[ ! " ${docker_images_no_tag[*]} " =~ " ${command} " ]]; then
+        local completions_func=_docker_run
+        declare -F $completions_func >/dev/null && $completions_func
+    fi
 
     if [[ ${cur} == -* ]]; then
         COMPREPLY+=(
@@ -53,9 +58,6 @@ _docker-run() {
         COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
     elif [[ ${prev} == "--name" ]]; then
         COMPREPLY=$(docker ps --format '{{.Names}}')
-        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
-    elif [[ ${unknown_commmand} == 1 ]]; then
-        COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $command)
         COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
     fi
 
