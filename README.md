@@ -6,13 +6,11 @@ Use `docker-run` to easily start and attach to Docker containers with useful pre
 
 ## Installation
 
-Add `docker-run` to your `PATH` to enable to use it from anywhere.
+Run `install.sh` to enable to use it from anywhere.
 
 ```bash
 # $ docker-run/
-echo "export PATH=\"$(pwd)/bin:"'$PATH"' >> ~/.bashrc
-echo "source $(pwd)/bash-completion/docker-run" >> ~/.bashrc
-source ~/.bashrc
+./install.sh
 ```
 
 ## Functionality
