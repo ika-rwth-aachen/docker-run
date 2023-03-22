@@ -35,7 +35,10 @@ _docker-run() {
     if [[ " ${docker_images[*]} " =~ " ${command} " ]]; then
         COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $command)
         COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
-    elif [[ ! " ${docker_images_no_tag[*]} " =~ " ${command} " ]]; then
+    elif [[ " ${docker_images_no_tag[*]} " =~ " ${command} " ]]; then
+        COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $command:latest)
+        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+    else
         local completions_func=_docker_run
         declare -F $completions_func >/dev/null && $completions_func
     fi
