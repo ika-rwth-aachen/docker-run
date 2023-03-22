@@ -32,11 +32,11 @@ _docker-run() {
 
     local docker_images=($(docker images --format "{{.Repository}}:{{.Tag}}"))
     local docker_images_no_tag=($(docker images --format "{{.Repository}}"))
-    if [[ " ${docker_images[*]} " =~ " ${command} " ]]; then
-        COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $command)
+    if [[ " ${docker_images[*]} " =~ " ${prev} " ]]; then
+        COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $prev)
         COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
-    elif [[ " ${docker_images_no_tag[*]} " =~ " ${command} " ]]; then
-        COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $command:latest)
+    elif [[ " ${docker_images_no_tag[*]} " =~ " ${prev} " ]]; then
+        COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $prev:latest)
         COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
     else
         local completions_func=_docker_run
