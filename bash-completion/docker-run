@@ -33,11 +33,9 @@ _docker-run() {
     local docker_images=($(docker images --format "{{.Repository}}:{{.Tag}}"))
     local docker_images_no_tag=($(docker images --format "{{.Repository}}"))
     if [[ " ${docker_images[*]} " =~ " ${prev} " ]]; then
-        COMPREPLY=$(docker inspect --format='{{range .Config.Env}}{{if eq (index (split . "=") 0) "DEFAULT_CMD"}}{{index (split . "=") 1}}{{end}}{{end}}' $prev | tr ' ' '_')
-        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+        COMPREPLY=$(docker inspect --format='{{range .Config.Env}}{{if eq (index (split . "=") 0) "DEFAULT_CMD"}}{{index (split . "=") 1}}{{end}}{{end}}' $prev)
     elif [[ " ${docker_images_no_tag[*]} " =~ " ${prev} " ]]; then
-        COMPREPLY=$(docker inspect --format='{{range .Config.Env}}{{if eq (index (split . "=") 0) "DEFAULT_CMD"}}{{index (split . "=") 1}}{{end}}{{end}}' $prev:latest | tr ' ' '_')
-        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+        COMPREPLY=$(docker inspect --format='{{range .Config.Env}}{{if eq (index (split . "=") 0) "DEFAULT_CMD"}}{{index (split . "=") 1}}{{end}}{{end}}' $prev:latest)
     else
         local completions_func=_docker_run
         declare -F $completions_func >/dev/null && $completions_func
