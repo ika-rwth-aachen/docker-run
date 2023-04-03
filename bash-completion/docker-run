@@ -37,7 +37,7 @@ _docker-run() {
         if [[ -z "$COMPREPLY" ]]; then
             COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $prev)
         fi
-    elif [[ " ${docker_images_no_tag[*]} " =~ " ${prev} " ]]; then
+    elif [[ " ${docker_images_no_tag[*]} " =~ " ${prev} " ]] && [[ " ${docker_images[*]} " =~ " ${prev}:latest " ]]; then
         COMPREPLY=$(docker inspect --format='{{range .Config.Env}}{{if eq (index (split . "=") 0) "DEFAULT_CMD"}}{{index (split . "=") 1}}{{end}}{{end}}' $prev:latest)
         if [[ -z "$COMPREPLY" ]]; then
             COMPREPLY=$(docker inspect --format='{{range .Config.Cmd}}{{.}}{{end}}' $prev:latest)
