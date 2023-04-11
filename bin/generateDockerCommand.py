@@ -5,7 +5,7 @@ import os
 import sys
 from typing import Any, Dict, List
 
-from utils import log, printDockerCommand, runCommand
+from utils import log, runCommand
 from plugins.core import CorePlugin
 from plugins.docker_ros import DockerRosPlugin
 
@@ -45,11 +45,12 @@ def parseArguments():
     return args, unknown
 
 
-def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str]) -> str:
-    """Builds an executable `docker run` or `docker exec` command based on the arguments.
+def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = []) -> str:
+    """Builds an executable `docker run` or `docker exec` command based on the given arguments.
 
     Args:
-        TODO
+        args (Dict[str, Any]): known arguments that are handled explicitly
+        unknown_args (List[str], optional): extra arguments to include in `docker` command ([])
 
     Returns:
         str: executable `docker run` or `docker exec` command
@@ -108,6 +109,24 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str]) -> str:
             docker_cmd += ["bash"]
 
     return " ".join(docker_cmd)
+
+
+def printDockerCommand(cmd: str):
+    """Prints a docker command in human-readable way by line-breaking on each new argument.
+
+    Args:
+        cmd (str): docker command
+    """
+
+    components = cmd.split()
+    log(f"{components[0]} {components[1]}", end="")
+
+    for c in components[2:]:
+        if c.startswith("-"):
+            log(f" \\\n  {c}", end="")
+        else:
+            log(f" {c}", end="")
+    log("")
 
 
 def main():
