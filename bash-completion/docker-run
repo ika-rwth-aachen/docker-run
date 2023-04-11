@@ -1,7 +1,8 @@
+# source official docker auto-competion 
 source /usr/share/bash-completion/completions/docker
 
 _docker-run() {
-
+    # use settings from the official docker auto-competion main function (_docker)
     local previous_extglob_setting=$(shopt -p extglob)
     shopt -s extglob
 
@@ -9,6 +10,7 @@ _docker-run() {
     local cur prev words cword
     _get_comp_words_by_ref -n : cur prev words cword
 
+    # set default command to run and loop over cli words
     local command='run' command_pos=0 subcommand_pos
     local counter=1
     while [ "$counter" -lt "$cword" ]; do
@@ -30,8 +32,11 @@ _docker-run() {
         (( counter++ ))
     done
 
+    # save list of local docker images (with and without tag)
     local docker_images=($(docker images --format "{{.Repository}}:{{.Tag}}"))
     local docker_images_no_tag=($(docker images --format "{{.Repository}}"))
+
+    # check if previous word is docker image or not
     if [[ " ${docker_images[*]} " =~ " ${prev} " ]]; then
         COMPREPLY=$(docker inspect --format='{{range .Config.Env}}{{if eq (index (split . "=") 0) "DEFAULT_CMD"}}{{index (split . "=") 1}}{{end}}{{end}}' $prev)
         if [[ -z "$COMPREPLY" ]]; then
@@ -43,10 +48,12 @@ _docker-run() {
             COMPREPLY=$(docker inspect --format='{{join .Config.Cmd " "}}' $prev:latest)
         fi
     else
+        # use official docker run auto-completion
         local completions_func=_docker_run
         declare -F $completions_func >/dev/null && $completions_func
     fi
 
+    # add custom args to auto-complete suggestions
     if [[ ${cur} == -* ]]; then
         COMPREPLY+=(
         "--cmd"
@@ -64,6 +71,7 @@ _docker-run() {
         )
         COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
     elif [[ ${prev} == "--name" ]]; then
+        # auto-complete with name of running containers
         COMPREPLY=$(docker ps --format '{{.Names}}')
         COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
     fi
