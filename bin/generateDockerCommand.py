@@ -1,13 +1,24 @@
 #!/usr/bin/env python
 
 import argparse
+import importlib
 import os
 import sys
 from typing import Any, Dict, List
 
 from utils import log, runCommand
-from plugins.core import CorePlugin
-from plugins.docker_ros import DockerRosPlugin
+from plugins.plugin import Plugin
+
+# automatically load all available plugins inheriting from `Plugin`
+PLUGINS = []
+PLUGINS_DIR = os.path.join(os.path.dirname(__file__), "plugins")
+for file_name in os.listdir(PLUGINS_DIR):
+    if file_name.endswith(".py") and file_name != "plugin.py":
+        module_name = os.path.splitext(file_name)[0]
+        module = importlib.import_module(f"plugins.{module_name}")
+        for name, cls in module.__dict__.items():
+            if isinstance(cls, type) and issubclass(cls, Plugin) and cls is not Plugin:
+                PLUGINS.append(cls)
 
 
 def parseArguments():
@@ -37,8 +48,8 @@ def parseArguments():
     parser.add_argument("--cmd", nargs="*", default=[], help="command to execute in container")
 
     # plugin args
-    CorePlugin.addArguments(parser)
-    DockerRosPlugin.addArguments(parser)
+    for plugin in PLUGINS:
+        plugin.addArguments(parser)
 
     args, unknown = parser.parse_known_args()
 
@@ -73,16 +84,17 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = []) -> st
             docker_cmd += [f"--name {args['name']}"]
 
         # plugin flags
-        docker_cmd += CorePlugin.getRunFlags(args, unknown_args)
-        docker_cmd += DockerRosPlugin.getRunFlags(args, unknown_args)
+        for plugin in PLUGINS:
+            docker_cmd += plugin.getRunFlags(args, unknown_args)
 
     else: # docker exec
 
         log(f"Attaching to running container '{args['name']}' ...")
         docker_cmd = ["docker", "exec"]
 
-        docker_cmd += CorePlugin.getExecFlags(args, unknown_args)
-        docker_cmd += DockerRosPlugin.getExecFlags(args, unknown_args)
+        # plugin flags
+        for plugin in PLUGINS:
+            docker_cmd += plugin.getExecFlags(args, unknown_args)
 
     # append all extra args
     docker_cmd += unknown_args
