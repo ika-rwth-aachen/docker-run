@@ -30,12 +30,13 @@ def parseArguments():
                                      add_help=False)
 
     parser.add_argument("--help", action="help", default=argparse.SUPPRESS, help="show this help message and exit")
-
     parser.add_argument("--name", default=os.path.basename(os.getcwd()), help="container name; generates `docker exec` command if already running")
+    parser.add_argument("--no-name", action="store_true", help="disable automatic container name (current directory)")
     parser.add_argument("--verbose", action="store_true", help="print generated command")
     parser.add_argument("--image", help="image name")
     parser.add_argument("--cmd", nargs="*", default=[], help="command to execute in container")
 
+    # plugin args
     CorePlugin.addArguments(parser)
     DockerRosPlugin.addArguments(parser)
 
@@ -55,6 +56,8 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str]) -> str:
     """
 
     # check for running container
+    if args["no_name"]:
+        args["name"] = None
     new_container = False
     running_containers = runCommand('docker ps --format "{{.Names}}"')[0].split('\n')
     new_container = not (args["name"] in running_containers)
@@ -66,8 +69,9 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str]) -> str:
 
         # name
         if args["name"] is not None and len(args["name"]) > 0:
-            docker_cmd += nameFlags(args["name"])
+            docker_cmd += [f"--name {args['name']}"]
 
+        # plugin flags
         docker_cmd += CorePlugin.getRunFlags(args, unknown_args)
         docker_cmd += DockerRosPlugin.getRunFlags(args, unknown_args)
 
@@ -104,11 +108,6 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str]) -> str:
             docker_cmd += ["bash"]
 
     return " ".join(docker_cmd)
-
-
-def nameFlags(name):
-        
-    return [f"--name {name}"]
 
 
 def main():
