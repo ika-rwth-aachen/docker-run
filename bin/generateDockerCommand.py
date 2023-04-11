@@ -6,7 +6,8 @@ import sys
 from typing import Any, Dict, List
 
 from utils import log, printDockerCommand, runCommand
-from plugins.core import DockerRunCorePlugin
+from plugins.core import CorePlugin
+from plugins.docker_ros import DockerRosPlugin
 
 
 def parseArguments():
@@ -35,7 +36,8 @@ def parseArguments():
     parser.add_argument("--image", help="image name")
     parser.add_argument("--cmd", nargs="*", default=[], help="command to execute in container")
 
-    DockerRunCorePlugin.addArguments(parser)
+    CorePlugin.addArguments(parser)
+    DockerRosPlugin.addArguments(parser)
 
     args, unknown = parser.parse_known_args()
 
@@ -66,14 +68,16 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str]) -> str:
         if args["name"] is not None and len(args["name"]) > 0:
             docker_cmd += nameFlags(args["name"])
 
-        docker_cmd += DockerRunCorePlugin.getRunFlags(args, unknown_args)
+        docker_cmd += CorePlugin.getRunFlags(args, unknown_args)
+        docker_cmd += DockerRosPlugin.getRunFlags(args, unknown_args)
 
     else: # docker exec
 
         log(f"Attaching to running container '{args['name']}' ...")
         docker_cmd = ["docker", "exec"]
 
-        docker_cmd += DockerRunCorePlugin.getExecFlags(args, unknown_args)
+        docker_cmd += CorePlugin.getExecFlags(args, unknown_args)
+        docker_cmd += DockerRosPlugin.getExecFlags(args, unknown_args)
 
     # append all extra args
     docker_cmd += unknown_args

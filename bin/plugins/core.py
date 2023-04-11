@@ -5,10 +5,10 @@ import tempfile
 from typing import Any, Dict, List
 
 from utils import log, runCommand
-from .plugin import DockerRunPlugin
+from .plugin import Plugin
 
 
-class DockerRunCorePlugin(DockerRunPlugin):
+class CorePlugin(Plugin):
     
     OS = platform.uname().system
     ARCH = platform.uname().machine

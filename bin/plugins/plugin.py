@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List
 
 
+class Plugin(ABC):
     
     @classmethod
     def addArguments(cls, parser: argparse.ArgumentParser):
