@@ -18,6 +18,7 @@ class CorePlugin(Plugin):
         
         parser.add_argument("--no-rm", action="store_true", help="disable automatic container removal")
         parser.add_argument("--no-it", action="store_true", help="disable automatic interactive tty")
+        parser.add_argument("--no-tz", action="store_true", help="disable automatic timezone")
         parser.add_argument("--no-gpu", action="store_true", help="disable automatic GPU support")
         parser.add_argument("--no-x11", action="store_true", help="disable automatic X11 GUI forwarding")
     
@@ -28,6 +29,8 @@ class CorePlugin(Plugin):
             flags += cls.removeFlags()
         if not args["no_it"]:
             flags += cls.interactiveFlags()
+        if not args["no_tz"]:
+            flags += cls.timezoneFlags()
         if not args["no_gpu"]:
             flags += cls.gpuSupportFlags()
         if not args["no_x11"]:
@@ -50,6 +53,14 @@ class CorePlugin(Plugin):
     @classmethod
     def interactiveFlags(cls) -> List[str]:
         return ["--interactive", "--tty"]
+
+    @classmethod
+    def timezoneFlags(cls) -> List[str]:
+        if cls.OS == "Darwin":
+            tz = runCommand("readlink /etc/localtime | sed 's#/var/db/timezone/zoneinfo/##g'")[0]
+        else:
+            tz = runCommand("cat /etc/timezone")[0][:-1]
+        return [f"--env TZ={tz}"]
 
     @classmethod
     def gpuSupportFlags(cls) -> List[str]:
