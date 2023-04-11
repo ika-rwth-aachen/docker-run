@@ -1,7 +1,8 @@
 import argparse
 from abc import ABC, abstractmethod
+from typing import Any, Dict, List
 
-class DockerRunPlugin(ABC):
+
     
     @classmethod
     def addArguments(cls, parser: argparse.ArgumentParser):
@@ -9,10 +10,10 @@ class DockerRunPlugin(ABC):
     
     @classmethod
     @abstractmethod
-    def getRunFlags(cls, args):
+    def getRunFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         raise NotImplementedError()
 
     @classmethod
     @abstractmethod
-    def getExecFlags(cls, args):
+    def getExecFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         raise NotImplementedError()

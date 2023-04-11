@@ -2,11 +2,10 @@
 
 import argparse
 import os
-import platform
-import subprocess
 import sys
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List
 
+from utils import log, printDockerCommand, runCommand
 from plugins.core import DockerRunCorePlugin
 
 
@@ -43,33 +42,6 @@ def parseArguments():
     return args, unknown
 
 
-def log(msg: str, *args, **kwargs):
-    """Log message to stderr.
-    Args:
-        msg (str): log message
-    """
-
-    print(msg, file=sys.stderr, *args, **kwargs)
-
-
-def runCommand(cmd: str, *args, **kwargs) -> Tuple[str, str]:
-    """Execute system command.
-
-    Args:
-        cmd (str): system command
-
-    Returns:
-        Tuple[str, str]: stdout, stderr output
-    """
-
-    try:
-        output = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, *args, **kwargs)
-    except subprocess.CalledProcessError as exc:
-        raise RuntimeError(f"System command '{cmd}' failed: {exc.stderr.decode()}")
-
-    return output.stdout.decode(), output.stderr.decode()
-
-
 def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str]) -> str:
     """Builds an executable `docker run` or `docker exec` command based on the arguments.
 
@@ -94,14 +66,14 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str]) -> str:
         if args["name"] is not None and len(args["name"]) > 0:
             docker_cmd += nameFlags(args["name"])
 
-        docker_cmd += DockerRunCorePlugin.getRunFlags(args)
+        docker_cmd += DockerRunCorePlugin.getRunFlags(args, unknown_args)
 
     else: # docker exec
 
         log(f"Attaching to running container '{args['name']}' ...")
         docker_cmd = ["docker", "exec"]
 
-        docker_cmd += DockerRunCorePlugin.getExecFlags(args)
+        docker_cmd += DockerRunCorePlugin.getExecFlags(args, unknown_args)
 
     # append all extra args
     docker_cmd += unknown_args
@@ -133,24 +105,6 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str]) -> str:
 def nameFlags(name):
         
     return [f"--name {name}"]
-
-
-def printDockerCommand(cmd: str):
-    """Prints a docker command in human-readable way by line-breaking on each new argument.
-
-    Args:
-        cmd (str): docker command
-    """
-
-    components = cmd.split()
-    log(f"{components[0]} {components[1]}", end="")
-
-    for c in components[2:]:
-        if c.startswith("-"):
-            log(f" \\\n  {c}", end="")
-        else:
-            log(f" {c}", end="")
-    log("")
 
 
 def main():
