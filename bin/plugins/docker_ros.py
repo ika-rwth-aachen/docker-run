@@ -14,15 +14,15 @@ class DockerRosPlugin(Plugin):
     def addArguments(cls, parser: argparse.ArgumentParser):
         
         parser.add_argument("--no-user", action="store_true", help="disable passing local UID/GID into container")
-        parser.add_argument("--mwd", action="store_true", help=f"mount current directory into `{cls.TARGET_MOUNT}`")
+        parser.add_argument("--mws", action="store_true", help=f"mount current directory into ROS workspace at `{cls.TARGET_MOUNT}`")
     
     @classmethod
     def getRunFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         flags = []
         if not args["no_user"]:
             flags += cls.userFlags()
-        if args["mwd"]:
-            flags += cls.currentDirMountFlags()
+        if args["mws"]:
+            flags += cls.currentDirMountWorkspaceFlags()
         return flags
 
     @classmethod
@@ -41,5 +41,5 @@ class DockerRosPlugin(Plugin):
         return [f"--user {os.getuid()}"]
 
     @classmethod
-    def currentDirMountFlags(cls) -> List[str]:
+    def currentDirMountWorkspaceFlags(cls) -> List[str]:
         return [f"--volume {os.getcwd()}:{cls.TARGET_MOUNT}"]

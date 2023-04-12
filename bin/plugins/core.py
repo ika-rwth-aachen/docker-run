@@ -21,6 +21,7 @@ class CorePlugin(Plugin):
         parser.add_argument("--no-tz", action="store_true", help="disable automatic timezone")
         parser.add_argument("--no-gpu", action="store_true", help="disable automatic GPU support")
         parser.add_argument("--no-x11", action="store_true", help="disable automatic X11 GUI forwarding")
+        parser.add_argument("--mwd", action="store_true", help="mount current directory at same path")
     
     @classmethod
     def getRunFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
@@ -40,6 +41,8 @@ class CorePlugin(Plugin):
                 if network_arg_index < len(unknown_args):
                     gui_forwarding_kwargs["docker_network"] = unknown_args[network_arg_index]
             flags += cls.x11GuiForwardingFlags(**gui_forwarding_kwargs)
+        if args["mwd"]:
+            flags += cls.currentDirMountFlags()
         return flags
 
     @classmethod
@@ -99,3 +102,7 @@ class CorePlugin(Plugin):
         flags.append(f"--volume {xsock}:{xsock}")
 
         return flags
+
+    @classmethod
+    def currentDirMountFlags(cls) -> List[str]:
+        return [f"--volume {os.getcwd()}:{os.getcwd()}"]
