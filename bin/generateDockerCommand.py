@@ -4,7 +4,7 @@ import argparse
 import importlib
 import os
 import sys
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from utils import log, runCommand
 from plugins.plugin import Plugin
@@ -25,7 +25,7 @@ __package__ = "docker-run"
 __version__ = "0.5.0"
 
 
-def parseArguments():
+def parseArguments() -> Tuple[argparse.Namespace, List[str], List[str]]:
 
     class DockerRunArgumentParser(argparse.ArgumentParser):
 
@@ -47,11 +47,10 @@ def parseArguments():
                                      add_help=False)
 
     parser.add_argument("--help", action="help", default=argparse.SUPPRESS, help="show this help message and exit")
+    parser.add_argument("--image", help="image name (may also be specified without --image as last argument before command)")
     parser.add_argument("--name", default=os.path.basename(os.getcwd()), help="container name; generates `docker exec` command if already running")
     parser.add_argument("--no-name", action="store_true", help="disable automatic container name (current directory)")
     parser.add_argument("--verbose", action="store_true", help="print generated command")
-    parser.add_argument("--image", help="image name")
-    parser.add_argument("--cmd", nargs="*", default=[], help="command to execute in container")
     parser.add_argument("--version", action="store_true", help="show program's version number and exit")
 
     # plugin args
@@ -60,19 +59,30 @@ def parseArguments():
 
     args, unknown = parser.parse_known_args()
     
+    # separate unknown args before and after --
+    try:
+        double_dash_index = unknown.index("--")
+        unknown_args = unknown[:double_dash_index]
+        cmd_args = unknown[double_dash_index+1:]
+    except ValueError:
+        unknown_args = unknown
+        cmd_args = []
+    
+    # version
     if args.version:
         log(f"{__package__} v{__version__}")
         parser.exit()
 
-    return args, unknown
+    return args, unknown_args, cmd_args
 
 
-def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = []) -> str:
+def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = [], cmd_args: List[str] = []) -> str:
     """Builds an executable `docker run` or `docker exec` command based on the given arguments.
 
     Args:
         args (Dict[str, Any]): known arguments that are handled explicitly
         unknown_args (List[str], optional): extra arguments to include in `docker` command ([])
+        cmd_args (List[str], optional): extra arguments to append at the end of `docker` command ([])
 
     Returns:
         str: executable `docker run` or `docker exec` command
@@ -120,8 +130,7 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = []) -> st
             docker_cmd += [args["image"]]
 
         # command
-        if args["cmd"] is not None and len(args["cmd"]) > 0:
-            docker_cmd += args["cmd"]
+        docker_cmd += cmd_args
 
     else: # docker exec
 
@@ -129,11 +138,10 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = []) -> st
         docker_cmd += [args["name"]]
 
         # command
-        if args["cmd"] is not None and len(args["cmd"]) > 0:
-            exec_cmd = "bash -ic \"" + " ".join(args["cmd"]) + "\""
-            docker_cmd += [exec_cmd]
+        if len(cmd_args) > 0:
+            docker_cmd += cmd_args
         else:
-            docker_cmd += ["bash"]
+            docker_cmd += ["bash"] # default exec command
 
     return " ".join(docker_cmd)
 
@@ -158,9 +166,9 @@ def printDockerCommand(cmd: str):
 
 def main():
 
-    args, unknown_args = parseArguments()
+    args, unknown_args, cmd_args = parseArguments()
     
-    cmd = buildDockerCommand(vars(args), unknown_args)
+    cmd = buildDockerCommand(vars(args), unknown_args, cmd_args)
     print(cmd)
     if args.verbose:
         printDockerCommand(cmd)
