@@ -19,6 +19,7 @@ class CorePlugin(Plugin):
         parser.add_argument("--no-rm", action="store_true", help="disable automatic container removal")
         parser.add_argument("--no-it", action="store_true", help="disable automatic interactive tty")
         parser.add_argument("--no-tz", action="store_true", help="disable automatic timezone")
+        parser.add_argument("--no-loc", action="store_true", help="disable automatic locale")
         parser.add_argument("--no-gpu", action="store_true", help="disable automatic GPU support")
         parser.add_argument("--no-x11", action="store_true", help="disable automatic X11 GUI forwarding")
         parser.add_argument("--mwd", action="store_true", help="mount current directory at same path")
@@ -32,6 +33,8 @@ class CorePlugin(Plugin):
             flags += cls.interactiveFlags()
         if not args["no_tz"]:
             flags += cls.timezoneFlags()
+        if not args["no_loc"]:
+            flags += cls.localeFlags()
         if not args["no_gpu"]:
             flags += cls.gpuSupportFlags()
         if not args["no_x11"]:
@@ -65,6 +68,10 @@ class CorePlugin(Plugin):
         if os.path.isfile("/etc/localtime"):
             flags.append("--volume /etc/localtime:/etc/localtime:ro")
         return flags
+
+    @classmethod
+    def localeFlags(cls) -> List[str]:
+        return ["--env LANG", "--env LANGUAGE", "--env LC_ALL"]
 
     @classmethod
     def gpuSupportFlags(cls) -> List[str]:
