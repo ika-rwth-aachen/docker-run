@@ -4,11 +4,11 @@ from typing import Any, Dict, List
 
 
 class Plugin(ABC):
-    
+
     @classmethod
     def addArguments(cls, parser: argparse.ArgumentParser):
         pass
-    
+
     @classmethod
     @abstractmethod
     def getRunFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:

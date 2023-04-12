@@ -9,13 +9,13 @@ from .plugin import Plugin
 
 
 class CorePlugin(Plugin):
-    
+
     OS = platform.uname().system
     ARCH = platform.uname().machine
-    
+
     @classmethod
     def addArguments(cls, parser: argparse.ArgumentParser):
-        
+
         parser.add_argument("--no-rm", action="store_true", help="disable automatic container removal")
         parser.add_argument("--no-it", action="store_true", help="disable automatic interactive tty")
         parser.add_argument("--no-tz", action="store_true", help="disable automatic timezone")
@@ -23,7 +23,7 @@ class CorePlugin(Plugin):
         parser.add_argument("--no-gpu", action="store_true", help="disable automatic GPU support")
         parser.add_argument("--no-x11", action="store_true", help="disable automatic X11 GUI forwarding")
         parser.add_argument("--mwd", action="store_true", help="mount current directory at same path")
-    
+
     @classmethod
     def getRunFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         flags = []

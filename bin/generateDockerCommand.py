@@ -58,7 +58,7 @@ def parseArguments() -> Tuple[argparse.Namespace, List[str], List[str]]:
         plugin.addArguments(parser)
 
     args, unknown = parser.parse_known_args()
-    
+
     # separate unknown args before and after --
     try:
         double_dash_index = unknown.index("--")
@@ -67,7 +67,7 @@ def parseArguments() -> Tuple[argparse.Namespace, List[str], List[str]]:
     except ValueError:
         unknown_args = unknown
         cmd_args = []
-    
+
     # version
     if args.version:
         log(f"{__package__} v{__version__}")
@@ -167,7 +167,7 @@ def printDockerCommand(cmd: str):
 def main():
 
     args, unknown_args, cmd_args = parseArguments()
-    
+
     cmd = buildDockerCommand(vars(args), unknown_args, cmd_args)
     print(cmd)
     if args.verbose:

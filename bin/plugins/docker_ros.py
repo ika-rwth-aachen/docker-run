@@ -7,15 +7,15 @@ from .plugin import Plugin
 
 
 class DockerRosPlugin(Plugin):
-    
+
     TARGET_MOUNT = "/docker-ros/ws/src/target"
-    
+
     @classmethod
     def addArguments(cls, parser: argparse.ArgumentParser):
-        
+
         parser.add_argument("--no-user", action="store_true", help="disable passing local UID/GID into container")
         parser.add_argument("--mws", action="store_true", help=f"mount current directory into ROS workspace at `{cls.TARGET_MOUNT}`")
-    
+
     @classmethod
     def getRunFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         flags = []
