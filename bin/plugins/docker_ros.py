@@ -28,7 +28,7 @@ class DockerRosPlugin(Plugin):
     @classmethod
     def getExecFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         flags = []
-        if not args["no_user"] and runCommand(f"docker exec {args['name']} bash -c 'echo $DOCKER_ROS'")[0][:-1] == "1":
+        if not args["no_user"] and runCommand(f"docker exec {args['name']} sh -c 'echo $DOCKER_ROS'")[0][:-1] == "1":
             flags += cls.userExecFlags()
         return flags
 
