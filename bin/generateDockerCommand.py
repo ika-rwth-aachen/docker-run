@@ -130,7 +130,8 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = []) -> st
 
         # command
         if args["cmd"] is not None and len(args["cmd"]) > 0:
-            docker_cmd += args["cmd"]
+            exec_cmd = "bash -ic \"" + " ".join(args["cmd"]) + "\""
+            docker_cmd += [exec_cmd]
         else:
             docker_cmd += ["bash"]
 
