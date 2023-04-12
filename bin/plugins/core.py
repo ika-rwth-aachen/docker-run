@@ -50,7 +50,10 @@ class CorePlugin(Plugin):
 
     @classmethod
     def getExecFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
-        return []
+        flags = []
+        if not args["no_it"]:
+            flags += cls.interactiveFlags()
+        return flags
 
     @classmethod
     def removeFlags(cls) -> List[str]:
