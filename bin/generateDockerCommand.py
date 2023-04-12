@@ -21,6 +21,10 @@ for file_name in os.listdir(PLUGINS_DIR):
                 PLUGINS.append(cls)
 
 
+__package__ = "docker-run"
+__version__ = "0.5.0"
+
+
 def parseArguments():
 
     class DockerRunArgumentParser(argparse.ArgumentParser):
@@ -46,12 +50,17 @@ def parseArguments():
     parser.add_argument("--verbose", action="store_true", help="print generated command")
     parser.add_argument("--image", help="image name")
     parser.add_argument("--cmd", nargs="*", default=[], help="command to execute in container")
+    parser.add_argument("--version", action="store_true", help="show program's version number and exit")
 
     # plugin args
     for plugin in PLUGINS:
         plugin.addArguments(parser)
 
     args, unknown = parser.parse_known_args()
+    
+    if args.version:
+        log(f"{__package__} v{__version__}")
+        parser.exit()
 
     return args, unknown
 
