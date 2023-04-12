@@ -56,10 +56,10 @@ _docker-run() {
     # add custom args to auto-complete suggestions
     if [[ ${cur} == -* ]]; then
         COMPREPLY+=(
-        "--cmd"
         "--help"
         "--image"
         "--mwd"
+        "--mws"
         "--no-gpu"
         "--no-gpu"
         "--no-it"
@@ -68,6 +68,7 @@ _docker-run() {
         "--no-user"
         "--no-x11"
         "--verbose"
+        "--version"
         )
         COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
     elif [[ ${prev} == "--name" ]]; then

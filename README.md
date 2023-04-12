@@ -41,9 +41,10 @@ Unlike with `docker run`, you can also set the Docker image and command via `--i
 ## Usage
 
 ```
-usage: docker-run [--help] [--mwd] [--verbose] [--no-gpu] [--no-it] [--no-x11]
-                  [--no-rm] [--no-user] [--no-name] [--name NAME]
-                  [--image IMAGE] [--cmd [CMD ...]]
+usage: docker-run [--cmd [CMD ...]] [--help] [--image IMAGE] [--mwd] [--mws]
+                  [--name NAME] [--no-gpu] [--no-it] [--no-loc] [--no-name]
+                  [--no-rm] [--no-tz] [--no-user] [--no-x11] [--verbose]
+                  [--version]
 
 Executes `docker run` with the following features enabled by default, each of
 which can be disabled individually: container removal after exit, interactive
@@ -53,17 +54,20 @@ exec` instead if a container with the specified name (`--name`) is already
 running.
 
 optional arguments:
+  --cmd [CMD ...]  command to execute in container
   --help           show this help message and exit
-  --mwd            mount current directory into `/docker-ros/ws/src/target`
-  --verbose        print generated command
+  --image IMAGE    image name
+  --mwd            mount current directory at same path
+  --mws            mount current directory into ROS workspace at `/docker-ros/ws/src/target`
+  --name NAME      container name; generates `docker exec` command if already running
   --no-gpu         disable automatic GPU support
   --no-it          disable automatic interactive tty
-  --no-x11         disable automatic X11 GUI forwarding
-  --no-rm          disable automatic container removal
-  --no-user        disable parsing local user ids into container
+  --no-loc         disable automatic locale
   --no-name        disable automatic container name (current directory)
-  --name NAME      container name; generates `docker exec` command if already
-                   running
-  --image IMAGE    image name
-  --cmd [CMD ...]  command to execute in container
+  --no-rm          disable automatic container removal
+  --no-tz          disable automatic timezone
+  --no-user        disable passing local UID/GID into container
+  --no-x11         disable automatic X11 GUI forwarding
+  --verbose        print generated command
+  --version        show program's version number and exit
 ```
