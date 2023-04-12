@@ -85,7 +85,10 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = []) -> st
 
     if new_container: # docker run
 
-        log("Starting new container ..." )
+        log_msg = f"Starting new container "
+        if not args["no_name"]:
+            log_msg += f"'{args['name']}'"
+        log(log_msg + " ...")
         docker_cmd = ["docker", "run"]
 
         # name
