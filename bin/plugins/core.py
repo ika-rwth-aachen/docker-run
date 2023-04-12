@@ -116,4 +116,4 @@ class CorePlugin(Plugin):
 
     @classmethod
     def currentDirMountFlags(cls) -> List[str]:
-        return [f"--volume {os.getcwd()}:{os.getcwd()}"]
+        return [f"--volume {os.getcwd()}:{os.getcwd()}", f"--workdir {os.getcwd()}"]
