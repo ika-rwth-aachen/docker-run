@@ -33,6 +33,8 @@ def parseArguments():
             super().print_help(file=sys.stderr if file is None else file)
 
         def format_help(self):
+            parser._actions.sort(key=lambda x: x.dest)
+            parser._action_groups[1]._group_actions.sort(key=lambda x: x.dest)
             docker_run_help = runCommand("docker run --help")[0]
             separator = f"\n{'-' * 80}\n\n"
             return docker_run_help + separator + super().format_help()
