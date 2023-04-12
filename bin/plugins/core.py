@@ -59,11 +59,12 @@ class CorePlugin(Plugin):
 
     @classmethod
     def timezoneFlags(cls) -> List[str]:
-        if cls.OS == "Darwin":
-            tz = runCommand("readlink /etc/localtime | sed 's#/var/db/timezone/zoneinfo/##g'")[0]
-        else:
-            tz = runCommand("cat /etc/timezone")[0][:-1]
-        return [f"--env TZ={tz}"]
+        flags = []
+        if os.path.isfile("/etc/timezone"):
+            flags.append("--volume /etc/timezone:/etc/timezone:ro")
+        if os.path.isfile("/etc/localtime"):
+            flags.append("--volume /etc/localtime:/etc/localtime:ro")
+        return flags
 
     @classmethod
     def gpuSupportFlags(cls) -> List[str]:
