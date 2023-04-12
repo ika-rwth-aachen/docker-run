@@ -48,6 +48,7 @@ _docker-run() {
         "--help"
         "--image"
         "--mwd"
+        "--mws"
         "--no-gpu"
         "--no-gpu"
         "--no-it"
