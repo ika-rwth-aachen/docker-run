@@ -6,11 +6,11 @@ Use `docker-run` to easily start and attach to Docker containers with useful pre
 
 ## Installation
 
-Run [`install.sh`](./install.sh) to enable to use it from anywhere.
+Source [`install.sh`](./install.sh) to enable to use it from anywhere.
 
 ```bash
 # $ docker-run/
-./install.sh
+source install.sh
 ```
 
 ## Functionality
