@@ -1,1 +1,2 @@
-# TODO: can track __author__, __email__, __version__ here
+__name__ = "docker-run"
+__version__ = "0.6.0"

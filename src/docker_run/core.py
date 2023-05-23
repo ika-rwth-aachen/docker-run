@@ -6,6 +6,7 @@ import os
 import sys
 from typing import Any, Dict, List, Tuple
 
+import docker_run
 from docker_run.utils import log, runCommand
 from docker_run.plugins.plugin import Plugin
 
@@ -19,10 +20,6 @@ for file_name in os.listdir(PLUGINS_DIR):
         for name, cls in module.__dict__.items():
             if isinstance(cls, type) and issubclass(cls, Plugin) and cls is not Plugin:
                 PLUGINS.append(cls)
-
-
-__package__ = "docker-run"
-__version__ = "0.5.0"
 
 
 def parseArguments() -> Tuple[argparse.Namespace, List[str], List[str]]:
@@ -70,7 +67,7 @@ def parseArguments() -> Tuple[argparse.Namespace, List[str], List[str]]:
 
     # version
     if args.version:
-        log(f"{__package__} v{__version__}")
+        log(f"{docker_run.__name__} v{docker_run.__version__}")
         parser.exit()
 
     return args, unknown_args, cmd_args
