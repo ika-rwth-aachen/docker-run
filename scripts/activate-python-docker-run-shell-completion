@@ -2,6 +2,7 @@
 
 import os
 import shutil
+import sys
 
 import docker_run
 
@@ -24,7 +25,9 @@ def installBashCompletion():
     # setup sourcing of completion
     setupBashCompletion()
     
-    print(f"Successfully installed bash completion to '{target_file}'")
+    print(f"Successfully installed bash completion to '{target_file}'.", file=sys.stderr)
+    print(f"Restart your shell or source the following to activate it:", file=sys.stderr)
+    print(f"{USER_BASH_COMPLETION_MAIN_FILE}")
 
 
 def setupBashCompletion():
