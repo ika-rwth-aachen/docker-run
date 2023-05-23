@@ -2,7 +2,6 @@
 
 set -e
 
-DIR="$(cd -P "$(dirname "$0")" && pwd)" # path to directory containing this script
 OS="$(uname -s)"                        # supported: "Linux", "Darwin" (Mac)
 ARCH="$(uname -m)"                      # supported: "x86_64", "aarch64" (ARM, Jetson Orin), "arm64" (ARM, Mac)
 

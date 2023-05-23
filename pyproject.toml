@@ -31,7 +31,10 @@ requires-python = ">=3.7"
 "Bug Tracker" = "https://github.com/ika-rwth-aachen/docker-run/issues"
 
 [tool.setuptools]
-script-files = ["bin/docker-run"]
+script-files = [
+    "scripts/activate-python-docker-run-shell-completion",
+    "scripts/docker-run",
+]
 
 [tool.setuptools.package-data]
 docker_run = ["bash_completion.d/docker-run"]
