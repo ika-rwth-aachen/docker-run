@@ -6,11 +6,10 @@ Use `docker-run` to easily start and attach to Docker containers with useful pre
 
 ## Installation
 
-Source [`install.sh`](./install.sh) to enable to use it from anywhere.
-
 ```bash
 # $ docker-run/
-source install.sh
+pip install .
+source $(activate-python-docker-run-shell-completion 2> /dev/null)
 ```
 
 ## Functionality
