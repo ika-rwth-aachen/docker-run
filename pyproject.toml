@@ -32,3 +32,6 @@ requires-python = ">=3.7"
 
 [tool.setuptools]
 script-files = ["bin/docker-run"]
+
+[tool.setuptools.package-data]
+docker_run = ["bash_completion.d/docker-run"]
