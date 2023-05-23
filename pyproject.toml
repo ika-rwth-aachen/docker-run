@@ -26,6 +26,9 @@ keywords = ["docker", "container"]
 dependencies = []
 requires-python = ">=3.7"
 
+[project.optional-dependencies]
+dev = ["build", "twine"]
+
 [project.urls]
 "Repository" = "https://github.com/ika-rwth-aachen/docker-run"
 "Bug Tracker" = "https://github.com/ika-rwth-aachen/docker-run/issues"
