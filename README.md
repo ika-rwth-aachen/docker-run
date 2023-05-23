@@ -1,4 +1,4 @@
-<img src="assets/logo.png" height=130 align="right">
+<img src="https://github.com/ika-rwth-aachen/docker-run/raw/main/assets/logo.png" height=130 align="right">
 
 # docker-run
 
