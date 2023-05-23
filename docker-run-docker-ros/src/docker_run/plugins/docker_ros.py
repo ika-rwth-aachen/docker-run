@@ -6,6 +6,9 @@ from docker_run.utils import runCommand
 from docker_run.plugins.plugin import Plugin
 
 
+__version__ = "1.0.0"
+
+
 class DockerRosPlugin(Plugin):
 
     TARGET_MOUNT = "/docker-ros/ws/src/target"
@@ -13,8 +16,10 @@ class DockerRosPlugin(Plugin):
     @classmethod
     def addArguments(cls, parser: argparse.ArgumentParser):
 
-        parser.add_argument("--no-user", action="store_true", help="disable passing local UID/GID into container")
-        parser.add_argument("--mws", action="store_true", help=f"mount current directory into ROS workspace at `{cls.TARGET_MOUNT}`")
+        prefix = "[docker-ros]"
+
+        parser.add_argument("--no-user", action="store_true", help=f"{prefix} disable passing local UID/GID into container")
+        parser.add_argument("--mws", action="store_true", help=f"{prefix} mount current directory into ROS workspace at `{cls.TARGET_MOUNT}`")
 
     @classmethod
     def getRunFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
