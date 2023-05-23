@@ -4,8 +4,8 @@ import platform
 import tempfile
 from typing import Any, Dict, List
 
-from utils import log, runCommand
-from .plugin import Plugin
+from docker_run.utils import log, runCommand
+from docker_run.plugins.plugin import Plugin
 
 
 class CorePlugin(Plugin):

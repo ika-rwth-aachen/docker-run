@@ -2,8 +2,8 @@ import argparse
 import os
 from typing import Any, Dict, List
 
-from utils import runCommand
-from .plugin import Plugin
+from docker_run.utils import runCommand
+from docker_run.plugins.plugin import Plugin
 
 
 class DockerRosPlugin(Plugin):

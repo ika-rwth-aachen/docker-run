@@ -6,8 +6,8 @@ import os
 import sys
 from typing import Any, Dict, List, Tuple
 
-from utils import log, runCommand
-from plugins.plugin import Plugin
+from docker_run.utils import log, runCommand
+from docker_run.plugins.plugin import Plugin
 
 # automatically load all available plugins inheriting from `Plugin`
 PLUGINS = []
@@ -15,7 +15,7 @@ PLUGINS_DIR = os.path.join(os.path.dirname(__file__), "plugins")
 for file_name in os.listdir(PLUGINS_DIR):
     if file_name.endswith(".py") and file_name != "plugin.py":
         module_name = os.path.splitext(file_name)[0]
-        module = importlib.import_module(f"plugins.{module_name}")
+        module = importlib.import_module(f"docker_run.plugins.{module_name}")
         for name, cls in module.__dict__.items():
             if isinstance(cls, type) and issubclass(cls, Plugin) and cls is not Plugin:
                 PLUGINS.append(cls)
@@ -164,7 +164,7 @@ def printDockerCommand(cmd: str):
     log("")
 
 
-def main():
+def generateDockerCommand():
 
     args, unknown_args, cmd_args = parseArguments()
 
@@ -172,8 +172,3 @@ def main():
     print(cmd)
     if args.verbose:
         printDockerCommand(cmd)
-
-
-if __name__ == "__main__":
-
-    main()

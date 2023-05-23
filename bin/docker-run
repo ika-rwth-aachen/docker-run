@@ -24,7 +24,7 @@ fi
 
 # generate docker run/exec command
 CMD_FILE=$(mktemp)
-python3 $DIR/generateDockerCommand.py "${@}" 2>&1 >$CMD_FILE
+python -m docker_run "${@}" 2>&1 >$CMD_FILE
 CMD=$(cat $CMD_FILE)
 rm $CMD_FILE
 
