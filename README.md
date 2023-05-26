@@ -1,4 +1,4 @@
-<img src="assets/logo.png" height=130 align="right">
+<img src="https://github.com/ika-rwth-aachen/docker-run/raw/main/assets/logo.png" height=130 align="right">
 
 # docker-run
 
@@ -6,11 +6,10 @@ Use `docker-run` to easily start and attach to Docker containers with useful pre
 
 ## Installation
 
-Source [`install.sh`](./install.sh) to enable to use it from anywhere.
-
 ```bash
 # $ docker-run/
-source install.sh
+pip install docker-run
+source $(activate-python-docker-run-shell-completion 2> /dev/null)
 ```
 
 ## Functionality
@@ -41,10 +40,9 @@ Unlike with `docker run`, you can also set the Docker image and command via `--i
 ## Usage
 
 ```
-usage: docker-run [--cmd [CMD ...]] [--help] [--image IMAGE] [--mwd] [--mws]
-                  [--name NAME] [--no-gpu] [--no-it] [--no-loc] [--no-name]
-                  [--no-rm] [--no-tz] [--no-user] [--no-x11] [--verbose]
-                  [--version]
+usage: docker-run [--help] [--image IMAGE] [--mwd] [--name NAME] [--no-gpu]
+                  [--no-it] [--no-loc] [--no-name] [--no-rm] [--no-tz]
+                  [--no-x11] [--verbose] [--version]
 
 Executes `docker run` with the following features enabled by default, each of
 which can be disabled individually: container removal after exit, interactive
@@ -54,20 +52,35 @@ exec` instead if a container with the specified name (`--name`) is already
 running.
 
 optional arguments:
-  --cmd [CMD ...]  command to execute in container
-  --help           show this help message and exit
-  --image IMAGE    image name
-  --mwd            mount current directory at same path
-  --mws            mount current directory into ROS workspace at `/docker-ros/ws/src/target`
-  --name NAME      container name; generates `docker exec` command if already running
-  --no-gpu         disable automatic GPU support
-  --no-it          disable automatic interactive tty
-  --no-loc         disable automatic locale
-  --no-name        disable automatic container name (current directory)
-  --no-rm          disable automatic container removal
-  --no-tz          disable automatic timezone
-  --no-user        disable passing local UID/GID into container
-  --no-x11         disable automatic X11 GUI forwarding
-  --verbose        print generated command
-  --version        show program's version number and exit
+  --help         show this help message and exit
+  --image IMAGE  image name (may also be specified without --image as last
+                 argument before command)
+  --mwd          mount current directory at same path
+  --name NAME    container name; generates `docker exec` command if already
+                 running
+  --no-gpu       disable automatic GPU support
+  --no-it        disable automatic interactive tty
+  --no-loc       disable automatic locale
+  --no-name      disable automatic container name (current directory)
+  --no-rm        disable automatic container removal
+  --no-tz        disable automatic timezone
+  --no-x11       disable automatic X11 GUI forwarding
+  --verbose      print generated command
+  --version      show program's version number and exit
 ```
+
+## Plugins
+
+`docker-run` can be extended through plugins. Plugins are installed as optional dependencies.
+
+```bash
+# install specific plugin <PLUGIN_NAME>
+pip install docker-run[<PLUGIN_NAME>]
+
+# install all plugins
+pip install docker-run[plugins]
+```
+
+| Plugin | Description |
+| --- | --- |
+| [`docker-ros`](https://pypi.org/project/docker-run-docker-ros) | extra functionality for Docker images built by [*docker-ros*](https://github.com/ika-rwth-aachen/docker-ros) |

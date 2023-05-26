@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+
+import os
+import shutil
+import sys
+
+import docker_run
+
+
+MODULE_BASH_COMPLETION_FILE = os.path.join(os.path.dirname(docker_run.__file__), "bash_completion.d", "docker-run")
+USER_BASH_COMPLETION_MAIN_FILE = os.path.join(os.path.expanduser("~"), ".bash_completion")
+USER_BASH_COMPLETION_DIRNAME = ".bash_completion.d"
+USER_BASH_COMPLETION_DIR = os.path.join(os.path.expanduser("~"), USER_BASH_COMPLETION_DIRNAME)
+
+
+def installBashCompletion():
+
+    # copy completion file to user folder
+    source_file = MODULE_BASH_COMPLETION_FILE
+    target_file = os.path.join(USER_BASH_COMPLETION_DIR, os.path.basename(MODULE_BASH_COMPLETION_FILE))
+    if not os.path.exists(USER_BASH_COMPLETION_DIR):
+        os.makedirs(USER_BASH_COMPLETION_DIR)
+    shutil.copy(source_file, target_file)
+    
+    # setup sourcing of completion
+    setupBashCompletion()
+    
+    print(f"Successfully installed bash completion to '{target_file}'.", file=sys.stderr)
+    print(f"Restart your shell or source the following to activate it:", file=sys.stderr)
+    print(f"{USER_BASH_COMPLETION_MAIN_FILE}")
+
+
+def setupBashCompletion():
+    
+    # configure sourcing of user completion files
+    user_bash_completion = f"for f in ~/{USER_BASH_COMPLETION_DIRNAME}/*; do . $f; done\n"
+    if os.path.isfile(USER_BASH_COMPLETION_MAIN_FILE):
+        with open(USER_BASH_COMPLETION_MAIN_FILE, "r") as f:
+            if user_bash_completion in f.read():
+                return
+    with open(USER_BASH_COMPLETION_MAIN_FILE, "w") as f:
+        f.write(user_bash_completion)
+
+
+if __name__ == "__main__":  
+      
+    installBashCompletion()
