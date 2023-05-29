@@ -54,7 +54,6 @@ Unlike with `docker run`, you can also set the Docker image and command via `--i
 ## Installation
 
 ```bash
-# $ docker-run/
 pip install docker-run
 
 # (optional) shell auto-completion
