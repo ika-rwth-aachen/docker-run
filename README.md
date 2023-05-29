@@ -1,16 +1,29 @@
 <img src="https://github.com/ika-rwth-aachen/docker-run/raw/main/assets/logo.png" height=130 align="right">
 
-# docker-run
+# *docker-run* – ``docker run`` and ``docker exec`` with useful defaults
 
-Use `docker-run` to easily start and attach to Docker containers with useful predefined arguments.
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/ika-rwth-aachen/docker-run"/></a>
+  <img src="https://img.shields.io/github/license/ika-rwth-aachen/docker-run"/>
+  <a href="https://pypi.org/project/docker-run/"><img src="https://img.shields.io/pypi/dm/docker-run?color=blue&label=PyPI%20downloads"/>
+  <a href="https://github.com/ika-rwth-aachen/docker-run"><img src="https://img.shields.io/github/stars/ika-rwth-aachen/docker-run?style=social"/></a>
+</p>
 
-## Installation
+*docker-run* is a CLI tool for simplified interaction with Docker images. Use it to easily start and attach to Docker containers with useful predefined arguments.
+
+While *docker-run* can be used with any Docker image, we recommend to also check out our other tools for Docker and ROS.
+- [*docker-ros*](https://github.com/ika-rwth-aachen/docker-ros) automatically builds minimal container images of ROS applications <a href="https://github.com/ika-rwth-aachen/docker-ros"><img src="https://img.shields.io/github/stars/ika-rwth-aachen/docker-ros?style=social"/></a>
+- [*docker-ros-ml-images*](https://github.com/ika-rwth-aachen/docker-ros-ml-images) provides machine learning-enabled ROS Docker images <a href="https://github.com/ika-rwth-aachen/docker-run"><img src="https://img.shields.io/github/stars/ika-rwth-aachen/docker-run?style=social"/></a>
+
+
+## Quick Demo
+
+The following quickly launches the GUI application `xeyes` to demonstrate how `docker-run` takes care of X11 forwarding from container to host. The `--verbose` flag prints the underlying `docker run` command that is run under the hood.
 
 ```bash
-# $ docker-run/
-pip install docker-run
-source $(activate-python-docker-run-shell-completion 2> /dev/null)
+docker-run --verbose 607qwq/xeyes
 ```
+
 
 ## Functionality
 
@@ -36,6 +49,18 @@ docker-run --name my-running-container
 ```
 
 Unlike with `docker run`, you can also set the Docker image and command via `--image` and `--cmd` arguments, see [Usage](#usage). This may be required for more complex use cases.
+
+
+## Installation
+
+```bash
+# $ docker-run/
+pip install docker-run
+
+# (optional) shell auto-completion
+source $(activate-python-docker-run-shell-completion 2> /dev/null)
+```
+
 
 ## Usage
 
