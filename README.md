@@ -5,7 +5,7 @@
 <p align="center">
   <img src="https://img.shields.io/github/v/release/ika-rwth-aachen/docker-run"/></a>
   <img src="https://img.shields.io/github/license/ika-rwth-aachen/docker-run"/>
-  <a href="https://pypi.org/project/docker-run/"><img src="https://img.shields.io/pypi/dm/docker-run?color=blue&label=PyPI%20downloads"/>
+  <a href="https://pypi.org/project/docker-run-cli/"><img src="https://img.shields.io/pypi/dm/docker-run-cli?color=blue&label=PyPI%20downloads"/>
   <a href="https://github.com/ika-rwth-aachen/docker-run"><img src="https://img.shields.io/github/stars/ika-rwth-aachen/docker-run?style=social"/></a>
 </p>
 
@@ -54,7 +54,7 @@ Unlike with `docker run`, you can also set the Docker image and command via `--i
 ## Installation
 
 ```bash
-pip install docker-run
+pip install docker-run-cli
 
 # (optional) shell auto-completion
 source $(activate-python-docker-run-shell-completion 2> /dev/null)
@@ -99,10 +99,10 @@ optional arguments:
 
 ```bash
 # install specific plugin <PLUGIN_NAME>
-pip install docker-run[<PLUGIN_NAME>]
+pip install docker-run-cli[<PLUGIN_NAME>]
 
 # install all plugins
-pip install docker-run[plugins]
+pip install docker-run-cli[plugins]
 ```
 
 | Plugin | Description |
