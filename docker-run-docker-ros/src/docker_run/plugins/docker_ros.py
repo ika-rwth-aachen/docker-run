@@ -6,7 +6,7 @@ from docker_run.utils import runCommand
 from docker_run.plugins.plugin import Plugin
 
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 
 class DockerRosPlugin(Plugin):
