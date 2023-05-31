@@ -12,7 +12,7 @@
 *docker-run* is a CLI tool for simplified interaction with Docker images. Use it to easily start and attach to Docker containers with useful predefined arguments.
 
 <p align="center">
-  <img src="assets/teaser.png" width=500>
+  <img src="https://github.com/ika-rwth-aachen/docker-run/raw/main/assets/teaser.png" width=550>
 </p>
 
 While *docker-run* can be used with any Docker image, we recommend to also check out our other tools for Docker and ROS.
