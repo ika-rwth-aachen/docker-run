@@ -6,7 +6,6 @@
   <img src="https://img.shields.io/github/v/release/ika-rwth-aachen/docker-run"/></a>
   <img src="https://img.shields.io/github/license/ika-rwth-aachen/docker-run"/>
   <a href="https://pypi.org/project/docker-run-cli/"><img src="https://img.shields.io/pypi/dm/docker-run-cli?color=blue&label=PyPI%20downloads"/>
-  <a href="https://github.com/ika-rwth-aachen/docker-run"><img src="https://img.shields.io/github/stars/ika-rwth-aachen/docker-run?style=social"/></a>
 </p>
 
 *docker-run* is a CLI tool for simplified interaction with Docker images. Use it to easily start and attach to Docker containers with useful predefined arguments.
@@ -52,7 +51,7 @@ If a container with matching name is already running, `docker-run` will execute 
 docker-run --name my-running-container
 ```
 
-Unlike with `docker run`, you can also set the Docker image and command via `--image` and `--cmd` arguments, see [Usage](#usage). This may be required for more complex use cases.
+Unlike with `docker run`, you can also set the Docker image via the `--image` arguments, see [Usage](#usage). This may be required for more complex use cases.
 
 
 ## Installation
