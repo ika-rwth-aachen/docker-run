@@ -63,6 +63,8 @@ pip install docker-run-cli
 source $(activate-python-docker-run-shell-completion 2> /dev/null)
 ```
 
+  > Note:
+  > *pip* installs scripts into `~/.local/bin` and this is not on the default *Debian/Ubuntu* `$PATH`. To run `docker-run`, please make sure its in your `$PATH`. E.g. by running `$PATH=$PATH:~/.local/bin`.
 
 ## Usage
 
