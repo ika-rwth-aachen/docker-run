@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: [docker-run, docker-run-docker-ros]
+        package: [docker-run-cli, docker-run-docker-ros]
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
