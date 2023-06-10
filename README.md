@@ -3,9 +3,9 @@
 # *docker-run* – ``docker run`` and ``docker exec`` with useful defaults
 
 <p align="center">
-  <img src="https://img.shields.io/github/v/release/ika-rwth-aachen/docker-run"/></a>
   <img src="https://img.shields.io/github/license/ika-rwth-aachen/docker-run"/>
-  <a href="https://pypi.org/project/docker-run-cli/"><img src="https://img.shields.io/pypi/dm/docker-run-cli?color=blue&label=PyPI%20downloads"/>
+  <a href="https://pypi.org/project/docker-run-cli/"><img src="https://img.shields.io/pypi/v/docker-run-cli?label=PyPI"/></a>
+  <a href="https://pypi.org/project/docker-run-cli/"><img src="https://img.shields.io/pypi/dm/docker-run-cli?color=blue&label=PyPI%20downloads"/></a>
 </p>
 
 *docker-run* is a CLI tool for simplified interaction with Docker images. Use it to easily start and attach to Docker containers with useful predefined arguments.
