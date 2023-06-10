@@ -1,3 +1,4 @@
+import re
 import subprocess
 import sys
 from typing import Tuple
@@ -28,3 +29,21 @@ def runCommand(cmd: str, *args, **kwargs) -> Tuple[str, str]:
         raise RuntimeError(f"System command '{cmd}' failed: {exc.stderr.decode()}")
 
     return output.stdout.decode(), output.stderr.decode()
+
+
+def validDockerContainerName(name: str) -> str:
+    """Cleans a string such that it is a valid Docker container name.
+
+    [a-zA-Z0-9][a-zA-Z0-9_.-]
+
+    Args:
+        name (str): raw name
+
+    Returns:
+        str: valid container name
+    """
+    
+    name = re.sub('[^a-zA-Z0-9_.-]', '-', name)
+    name = re.sub('^[^a-zA-Z0-9]+', '', name)
+    
+    return name

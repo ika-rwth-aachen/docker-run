@@ -7,7 +7,7 @@ import sys
 from typing import Any, Dict, List, Tuple
 
 import docker_run
-from docker_run.utils import log, runCommand
+from docker_run.utils import log, runCommand, validDockerContainerName
 from docker_run.plugins.plugin import Plugin
 
 # automatically load all available plugins inheriting from `Plugin`
@@ -45,7 +45,7 @@ def parseArguments() -> Tuple[argparse.Namespace, List[str], List[str]]:
 
     parser.add_argument("--help", action="help", default=argparse.SUPPRESS, help="show this help message and exit")
     parser.add_argument("--image", help="image name (may also be specified without --image as last argument before command)")
-    parser.add_argument("--name", default=os.path.basename(os.getcwd()), help="container name; generates `docker exec` command if already running")
+    parser.add_argument("--name", default=validDockerContainerName(os.path.basename(os.getcwd())), help="container name; generates `docker exec` command if already running")
     parser.add_argument("--no-name", action="store_true", help="disable automatic container name (current directory)")
     parser.add_argument("--verbose", action="store_true", help="print generated command")
     parser.add_argument("--version", action="store_true", help="show program's version number and exit")
