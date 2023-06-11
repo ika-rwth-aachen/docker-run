@@ -92,6 +92,9 @@ class CorePlugin(Plugin):
         display = os.environ.get("DISPLAY")
         if display is None:
             return []
+        
+        if cls.OS == "Darwin":
+            runCommand(f"xhost +local:")
 
         xsock = "/tmp/.X11-unix"
         xauth = tempfile.NamedTemporaryFile(prefix='.docker.xauth.', delete=False).name
@@ -101,9 +104,9 @@ class CorePlugin(Plugin):
         os.chmod(xauth, 0o777)
 
         if docker_network != "host" and not display.startswith(":"):
-            display="172.17.0.1:" + display.split(":")[1]
+            display = "172.17.0.1:" + display.split(":")[1]
         if cls.OS == "Darwin":
-            display="host.docker.internal:" + display.split(":")[1]
+            display = "host.docker.internal:" + display.split(":")[1]
 
         flags = []
         flags.append(f"--env DISPLAY={display}")
