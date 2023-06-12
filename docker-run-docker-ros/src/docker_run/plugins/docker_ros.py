@@ -6,7 +6,7 @@ from docker_run.utils import runCommand
 from docker_run.plugins.plugin import Plugin
 
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 
 class DockerRosPlugin(Plugin):
@@ -33,7 +33,9 @@ class DockerRosPlugin(Plugin):
     @classmethod
     def getExecFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         flags = []
-        if not args["no_user"] and runCommand(f"docker exec {args['name']} sh -c 'echo $DOCKER_ROS'")[0][:-1] == "1":
+        is_docker_ros = (runCommand(f"docker exec {args['name']} printenv DOCKER_ROS")[0][:-1] == "1")
+        is_non_root = (len(runCommand(f"docker exec {args['name']} printenv DOCKER_UID")[0][:-1]) > 0)
+        if not args["no_user"] and is_docker_ros and is_non_root:
             flags += cls.userExecFlags()
         return flags
 

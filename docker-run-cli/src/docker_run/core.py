@@ -7,7 +7,7 @@ import sys
 from typing import Any, Dict, List, Tuple
 
 import docker_run
-from docker_run.utils import log, runCommand
+from docker_run.utils import log, runCommand, validDockerContainerName
 from docker_run.plugins.plugin import Plugin
 
 # automatically load all available plugins inheriting from `Plugin`
@@ -21,6 +21,7 @@ for file_name in os.listdir(PLUGINS_DIR):
             if isinstance(cls, type) and issubclass(cls, Plugin) and cls is not Plugin:
                 PLUGINS.append(cls)
 
+DEFAULT_CONTAINER_NAME = validDockerContainerName(os.path.basename(os.getcwd()))
 
 def parseArguments() -> Tuple[argparse.Namespace, List[str], List[str]]:
 
@@ -45,7 +46,7 @@ def parseArguments() -> Tuple[argparse.Namespace, List[str], List[str]]:
 
     parser.add_argument("--help", action="help", default=argparse.SUPPRESS, help="show this help message and exit")
     parser.add_argument("--image", help="image name (may also be specified without --image as last argument before command)")
-    parser.add_argument("--name", default=os.path.basename(os.getcwd()), help="container name; generates `docker exec` command if already running")
+    parser.add_argument("--name", default=DEFAULT_CONTAINER_NAME, help="container name; generates `docker exec` command if already running")
     parser.add_argument("--no-name", action="store_true", help="disable automatic container name (current directory)")
     parser.add_argument("--verbose", action="store_true", help="print generated command")
     parser.add_argument("--version", action="store_true", help="show program's version number and exit")
@@ -88,14 +89,19 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = [], cmd_a
     # check for running container
     if args["no_name"]:
         args["name"] = None
-    new_container = False
-    running_containers = runCommand('docker ps --format "{{.Names}}"')[0].split('\n')
-    new_container = not (args["name"] in running_containers)
+        new_container = True
+    else:
+        new_container = False
+        running_containers = runCommand('docker ps --format "{{.Names}}"')[0].split('\n')
+        new_container = not (args["name"] in running_containers)
+        if not new_container and args["image"] is not None and len(args["image"]) > 0:
+            args["name"] = None if args["name"] == DEFAULT_CONTAINER_NAME else args["name"]
+            new_container = True
 
     if new_container: # docker run
 
         log_msg = f"Starting new container "
-        if not args["no_name"]:
+        if args["name"] is not None:
             log_msg += f"'{args['name']}'"
         log(log_msg + " ...")
         docker_cmd = ["docker", "run"]
