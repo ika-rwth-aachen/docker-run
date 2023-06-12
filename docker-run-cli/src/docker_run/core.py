@@ -88,14 +88,19 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = [], cmd_a
     # check for running container
     if args["no_name"]:
         args["name"] = None
-    new_container = False
-    running_containers = runCommand('docker ps --format "{{.Names}}"')[0].split('\n')
-    new_container = not (args["name"] in running_containers)
+        new_container = True
+    else:
+        new_container = False
+        running_containers = runCommand('docker ps --format "{{.Names}}"')[0].split('\n')
+        new_container = not (args["name"] in running_containers)
+        if not new_container and args["image"] is not None and len(args["image"]) > 0:
+            args["name"] = None if args["name"] == validDockerContainerName(os.path.basename(os.getcwd())) else args["name"]
+            new_container = True
 
     if new_container: # docker run
 
         log_msg = f"Starting new container "
-        if not args["no_name"]:
+        if args["name"] is not None:
             log_msg += f"'{args['name']}'"
         log(log_msg + " ...")
         docker_cmd = ["docker", "run"]
