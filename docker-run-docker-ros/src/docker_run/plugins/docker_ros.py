@@ -33,9 +33,11 @@ class DockerRosPlugin(Plugin):
     @classmethod
     def getExecFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         flags = []
-        is_docker_ros = (runCommand(f"docker exec {args['name']} printenv DOCKER_ROS")[0][:-1] == "1")
-        is_non_root = (len(runCommand(f"docker exec {args['name']} printenv DOCKER_UID")[0][:-1]) > 0)
-        if not args["no_user"] and is_docker_ros and is_non_root:
+        is_dockeruser = False
+        docker_uid = runCommand(f"docker exec {args['name']} printenv DOCKER_UID || true")[0][:-1]
+        if len(runCommand(f"docker exec {args['name']} id -u {docker_uid} || true")[0][:-1]) > 0:
+            is_dockeruser = (int(runCommand(f"docker exec {args['name']} id -u {docker_uid} || true")[0][:-1]) > 0)
+        if not args["no_user"] and is_dockeruser:
             flags += cls.userExecFlags()
         return flags
 
