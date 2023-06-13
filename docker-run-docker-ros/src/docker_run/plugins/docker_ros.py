@@ -6,7 +6,7 @@ from docker_run.utils import runCommand
 from docker_run.plugins.plugin import Plugin
 
 
-__version__ = "1.0.2"
+__version__ = "1.0.3"
 
 
 class DockerRosPlugin(Plugin):
@@ -33,10 +33,12 @@ class DockerRosPlugin(Plugin):
     @classmethod
     def getExecFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         flags = []
-        is_docker_ros = (runCommand(f"docker exec {args['name']} printenv DOCKER_ROS")[0][:-1] == "1")
-        is_non_root = (len(runCommand(f"docker exec {args['name']} printenv DOCKER_UID")[0][:-1]) > 0)
-        if not args["no_user"] and is_docker_ros and is_non_root:
-            flags += cls.userExecFlags()
+        is_docker_user = False
+        docker_uid = runCommand(f"docker exec {args['name']} printenv DOCKER_UID || true")[0][:-1]
+        if len(docker_uid) > 0:
+            is_docker_user = (len(runCommand(f"docker exec {args['name']} id -u {docker_uid} || true")[0][:-1]) > 0)
+        if not args["no_user"] and is_docker_user:
+            flags += cls.userExecFlags(docker_uid)
         return flags
 
     @classmethod
@@ -44,8 +46,8 @@ class DockerRosPlugin(Plugin):
         return [f"--env DOCKER_UID={os.getuid()}", f"--env DOCKER_GID={os.getgid()}"]
 
     @classmethod
-    def userExecFlags(cls) -> List[str]:
-        return [f"--user {os.getuid()}"]
+    def userExecFlags(cls, user: str) -> List[str]:
+        return [f"--user {user}"]
 
     @classmethod
     def currentDirMountWorkspaceFlags(cls) -> List[str]:
