@@ -33,7 +33,7 @@ class DockerRosPlugin(Plugin):
     @classmethod
     def getExecFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         flags = []
-        is_dockeruser = False
+        is_docker_user = False
         docker_uid = runCommand(f"docker exec {args['name']} printenv DOCKER_UID || true")[0][:-1]
         if len(docker_uid) > 0:
             is_docker_user = (len(runCommand(f"docker exec {args['name']} id -u {docker_uid} || true")[0][:-1]) > 0)
