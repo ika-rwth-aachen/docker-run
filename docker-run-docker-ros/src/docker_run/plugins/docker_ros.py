@@ -6,12 +6,13 @@ from docker_run.utils import runCommand
 from docker_run.plugins.plugin import Plugin
 
 
-__version__ = "1.0.3"
+__version__ = "1.0.4"
 
 
 class DockerRosPlugin(Plugin):
 
-    TARGET_MOUNT = "/docker-ros/ws/src/target"
+    WORKSPACE = "/docker-ros/ws"
+    TARGET_MOUNT = f"{WORKSPACE}/src/target"
 
     @classmethod
     def addArguments(cls, parser: argparse.ArgumentParser):
@@ -51,4 +52,4 @@ class DockerRosPlugin(Plugin):
 
     @classmethod
     def currentDirMountWorkspaceFlags(cls) -> List[str]:
-        return [f"--volume {os.getcwd()}:{cls.TARGET_MOUNT}"]
+        return [f"--volume {os.getcwd()}:{cls.TARGET_MOUNT}", f"--workdir {cls.WORKSPACE}"]
