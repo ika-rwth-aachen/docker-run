@@ -28,9 +28,9 @@ requires-python = ">=3.7"
 
 [project.optional-dependencies]
 dev = ["build", "twine"]
-docker-ros = ["docker-run-docker-ros>=1.0.3"]
-plugins = ["docker-run-cli[docker-ros]"]
-all = ["docker-run-cli[plugins]", "docker-run-cli[dev]"]
+docker-ros = ["docker-run-docker-ros>=1.0.4"]
+plugins = ["docker-run-docker-ros>=1.0.4"]
+all = ["docker-run-docker-ros>=1.0.4", "build", "twine"]
 
 [project.urls]
 "Repository" = "https://github.com/ika-rwth-aachen/docker-run"
