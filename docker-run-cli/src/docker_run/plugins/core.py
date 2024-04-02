@@ -4,6 +4,8 @@ import platform
 import tempfile
 from typing import Any, Dict, List
 
+import GPUtil
+
 from docker_run.utils import log, runCommand
 from docker_run.plugins.plugin import Plugin
 
@@ -78,12 +80,16 @@ class CorePlugin(Plugin):
 
     @classmethod
     def gpuSupportFlags(cls) -> List[str]:
-        if cls.ARCH == "x86_64":
-            return ["--gpus all"]
-        elif cls.ARCH == "aarch64" and cls.OS == "Linux":
-            return ["--runtime nvidia"]
+        if len(GPUtil.getGPUs()) > 0:
+            if cls.ARCH == "x86_64":
+                return ["--gpus all"]
+            elif cls.ARCH == "aarch64" and cls.OS == "Linux":
+                return ["--runtime nvidia"]
+            else:
+                log(f"GPU not supported by `docker-run` on {cls.OS} with {cls.ARCH} architecture")
+                return []
         else:
-            log(f"GPU not supported by `docker-run` on {cls.OS} with {cls.ARCH} architecture")
+            log(f"No GPU detected")
             return []
 
     @classmethod
@@ -92,7 +98,7 @@ class CorePlugin(Plugin):
         display = os.environ.get("DISPLAY")
         if display is None:
             return []
-        
+
         if cls.OS == "Darwin":
             runCommand(f"xhost +local:")
 

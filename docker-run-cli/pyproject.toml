@@ -23,7 +23,7 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
 ]
 keywords = ["docker", "container"]
-dependencies = []
+dependencies = ["GPUtil~=1.4.0"]
 requires-python = ">=3.7"
 
 [project.optional-dependencies]
