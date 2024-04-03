@@ -146,6 +146,10 @@ def buildDockerCommand(args: Dict[str, Any], unknown_args: List[str] = [], cmd_a
         else:
             docker_cmd += ["bash"] # default exec command
 
+    # plugin modifications
+    for plugin in PLUGINS:
+        docker_cmd = plugin.modifyFinalCommand(docker_cmd, args, unknown_args)
+
     return " ".join(docker_cmd)
 
 

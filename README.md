@@ -46,10 +46,11 @@ In general, you can pass the same arguments to `docker-run` as you would pass to
 docker-run --volume $(pwd):/volume ubuntu ls /volume
 ```
 
-In addition to the arguments you are passing, `docker-run` however also enables the following features by default. Each of these default features can be disabled, see [Usage](#usage).
+In addition to the arguments you are passing, `docker-run` however also enables the following features by default. Most of these default features can be disabled, see [Usage](#usage).
 - container removal after exit (`--rm`)
 - interactive tty (`--interactive --tty`)
 - current directory name as container name (`--name`)
+- relative bind mounts (`--volume [./RELATIVE_PATH>]:[TARGET_PATH]`)
 - GPU support (`--gpus all` / `--runtime nvidia`)
 - X11 GUI forwarding
 

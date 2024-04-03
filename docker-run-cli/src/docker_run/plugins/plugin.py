@@ -18,3 +18,7 @@ class Plugin(ABC):
     @abstractmethod
     def getExecFlags(cls, args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         raise NotImplementedError()
+
+    @classmethod
+    def modifyFinalCommand(cls, cmd: List[str], args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
+        return cmd

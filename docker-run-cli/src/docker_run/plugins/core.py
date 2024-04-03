@@ -58,6 +58,12 @@ class CorePlugin(Plugin):
         return flags
 
     @classmethod
+    def modifyFinalCommand(cls, cmd: List[str], args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
+        if "-v" in cmd or "--volume" in cmd:
+            cmd = cls.resolveRelativeVolumeFlags(cmd)
+        return cmd
+
+    @classmethod
     def removeFlags(cls) -> List[str]:
         return ["--rm"]
 
@@ -126,3 +132,13 @@ class CorePlugin(Plugin):
     @classmethod
     def currentDirMountFlags(cls) -> List[str]:
         return [f"--volume {os.getcwd()}:{os.getcwd()}", f"--workdir {os.getcwd()}"]
+
+    @classmethod
+    def resolveRelativeVolumeFlags(cls, cmd: List[str]) -> List[str]:
+        for i, arg in enumerate(cmd):
+            if arg in ["-v", "--volume"]:
+                mount_path = cmd[i + 1].split(":")[0]
+                if mount_path.startswith("."):
+                    absolute_mount_path = os.path.abspath(mount_path)
+                    cmd[i + 1] = absolute_mount_path + cmd[i + 1][len(mount_path):]
+        return cmd
