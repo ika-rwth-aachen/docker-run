@@ -131,7 +131,8 @@ class CorePlugin(Plugin):
 
     @classmethod
     def currentDirMountFlags(cls) -> List[str]:
-        return [f"--volume {os.getcwd()}:{os.getcwd()}", f"--workdir {os.getcwd()}"]
+        cwd = os.getcwd().replace(" ", "\\ ")
+        return [f"--volume {cwd}:{cwd}", f"--workdir {cwd}"]
 
     @classmethod
     def resolveRelativeVolumeFlags(cls, cmd: List[str]) -> List[str]:
