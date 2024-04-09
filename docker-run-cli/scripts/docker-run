@@ -26,8 +26,21 @@ python3 -m docker_run "${@}" 2>&1 >$CMD_FILE
 CMD=$(cat $CMD_FILE)
 rm $CMD_FILE
 
+# convert command string to array to allow for escaped characters, e.g. "docker run -v /path\ with\ spaces:/path\ with\ spaces ..."
+CMD_ARRAY=()
+  while IFS= read -r -d ' ' part; do
+    while [[ $part == *"\\" ]]; do
+      part+=" "
+      part="${part//\\/}"
+      IFS= read -r -d ' ' next_part
+      part+=$next_part
+    done
+    CMD_ARRAY+=("$part")
+  done <<< "$CMD"
+  CMD_ARRAY+=("${part%$'\n'}")
+
 # execute command
 if [[ ! -z "$CMD" ]]; then
   echo -e "================================================================================\n"
-  exec $CMD
+  exec "${CMD_ARRAY[@]}"
 fi

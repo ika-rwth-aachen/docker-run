@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "docker-run-cli"
-version = "0.9.6"
+version = "0.9.7"
 description = "'docker run' and 'docker exec' with useful defaults"
 license = {file = "LICENSE"}
 readme = "README.md"
@@ -23,14 +23,14 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
 ]
 keywords = ["docker", "container"]
-dependencies = []
+dependencies = ["GPUtil~=1.4.0"]
 requires-python = ">=3.7"
 
 [project.optional-dependencies]
 dev = ["build", "twine"]
-docker-ros = ["docker-run-docker-ros>=1.0.4"]
-plugins = ["docker-run-docker-ros>=1.0.4"]
-all = ["docker-run-docker-ros>=1.0.4", "build", "twine"]
+docker-ros = ["docker-run-docker-ros>=1.0.5"]
+plugins = ["docker-run-docker-ros>=1.0.5"]
+all = ["docker-run-docker-ros>=1.0.5", "build", "twine"]
 
 [project.urls]
 "Repository" = "https://github.com/ika-rwth-aachen/docker-run"

@@ -52,4 +52,5 @@ class DockerRosPlugin(Plugin):
 
     @classmethod
     def currentDirMountWorkspaceFlags(cls) -> List[str]:
-        return [f"--volume {os.getcwd()}:{cls.TARGET_MOUNT}", f"--workdir {cls.WORKSPACE}"]
+        cwd = os.getcwd().replace(" ", "\\ ")
+        return [f"--volume {cwd}:{cls.TARGET_MOUNT}", f"--workdir {cls.WORKSPACE}"]

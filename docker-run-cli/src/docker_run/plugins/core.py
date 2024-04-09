@@ -4,6 +4,8 @@ import platform
 import tempfile
 from typing import Any, Dict, List
 
+import GPUtil
+
 from docker_run.utils import log, runCommand
 from docker_run.plugins.plugin import Plugin
 
@@ -56,6 +58,13 @@ class CorePlugin(Plugin):
         return flags
 
     @classmethod
+    def modifyFinalCommand(cls, cmd: List[str], args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
+        if "-v" in cmd or "--volume" in cmd:
+            cmd = cls.resolveRelativeVolumeFlags(cmd)
+            cmd = cls.fixSpacesInVolumeFlags(cmd)
+        return cmd
+
+    @classmethod
     def removeFlags(cls) -> List[str]:
         return ["--rm"]
 
@@ -78,12 +87,16 @@ class CorePlugin(Plugin):
 
     @classmethod
     def gpuSupportFlags(cls) -> List[str]:
-        if cls.ARCH == "x86_64":
-            return ["--gpus all"]
-        elif cls.ARCH == "aarch64" and cls.OS == "Linux":
-            return ["--runtime nvidia"]
+        if len(GPUtil.getGPUs()) > 0:
+            if cls.ARCH == "x86_64":
+                return ["--gpus all"]
+            elif cls.ARCH == "aarch64" and cls.OS == "Linux":
+                return ["--runtime nvidia"]
+            else:
+                log(f"GPU not supported by `docker-run` on {cls.OS} with {cls.ARCH} architecture")
+                return []
         else:
-            log(f"GPU not supported by `docker-run` on {cls.OS} with {cls.ARCH} architecture")
+            log(f"No GPU detected")
             return []
 
     @classmethod
@@ -92,7 +105,7 @@ class CorePlugin(Plugin):
         display = os.environ.get("DISPLAY")
         if display is None:
             return []
-        
+
         if cls.OS == "Darwin":
             runCommand(f"xhost +local:")
 
@@ -119,4 +132,22 @@ class CorePlugin(Plugin):
 
     @classmethod
     def currentDirMountFlags(cls) -> List[str]:
-        return [f"--volume {os.getcwd()}:{os.getcwd()}", f"--workdir {os.getcwd()}"]
+        cwd = os.getcwd().replace(" ", "\\ ")
+        return [f"--volume {cwd}:{cwd}", f"--workdir {cwd}"]
+
+    @classmethod
+    def resolveRelativeVolumeFlags(cls, cmd: List[str]) -> List[str]:
+        for i, arg in enumerate(cmd):
+            if arg in ["-v", "--volume"]:
+                mount_path = cmd[i + 1].split(":")[0]
+                if mount_path.startswith("."):
+                    absolute_mount_path = os.path.abspath(mount_path)
+                    cmd[i + 1] = absolute_mount_path + cmd[i + 1][len(mount_path):]
+        return cmd
+
+    @classmethod
+    def fixSpacesInVolumeFlags(cls, cmd: List[str]) -> List[str]:
+        for i, arg in enumerate(cmd):
+            if arg in ["-v", "--volume"]:
+                cmd[i + 1] = cmd[i + 1].replace(" ", "\\ ")
+        return cmd
