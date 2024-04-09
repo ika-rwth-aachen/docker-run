@@ -61,6 +61,7 @@ class CorePlugin(Plugin):
     def modifyFinalCommand(cls, cmd: List[str], args: Dict[str, Any], unknown_args: List[str]) -> List[str]:
         if "-v" in cmd or "--volume" in cmd:
             cmd = cls.resolveRelativeVolumeFlags(cmd)
+            cmd = cls.fixSpacesInVolumeFlags(cmd)
         return cmd
 
     @classmethod
@@ -142,4 +143,11 @@ class CorePlugin(Plugin):
                 if mount_path.startswith("."):
                     absolute_mount_path = os.path.abspath(mount_path)
                     cmd[i + 1] = absolute_mount_path + cmd[i + 1][len(mount_path):]
+        return cmd
+
+    @classmethod
+    def fixSpacesInVolumeFlags(cls, cmd: List[str]) -> List[str]:
+        for i, arg in enumerate(cmd):
+            if arg in ["-v", "--volume"]:
+                cmd[i + 1] = cmd[i + 1].replace(" ", "\\ ")
         return cmd
