@@ -83,7 +83,7 @@ class CorePlugin(Plugin):
 
     @classmethod
     def localeFlags(cls) -> List[str]:
-        return ["--env LANG", "--env LANGUAGE", "--env LC_ALL"]
+        return ["--env LANG", "--env LANGUAGE", "--env LC_ALL=C"]
 
     @classmethod
     def gpuSupportFlags(cls) -> List[str]:
