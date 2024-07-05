@@ -17,6 +17,7 @@ jobs:
     strategy:
       matrix:
         package: [docker-run-cli, docker-run-docker-ros]
+    continue-on-error: true
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
