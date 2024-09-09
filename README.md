@@ -70,7 +70,7 @@ pip install docker-run-cli
 source $(activate-python-docker-run-shell-completion 2> /dev/null)
 ```
 
-> **Warning**  
+> [!WARNING]  
 > Outside of a virtual environment, *pip* may default to a user-site installation of executables to `~/.local/bin`, which may not be present in your shell's `PATH`.  If running `docker-run` errors with `docker-run: command not found`, add the directory to your path. [*(More information)*](https://packaging.python.org/en/latest/tutorials/installing-packages/#installing-to-the-user-site)  
 > ```bash
 > echo "export PATH=\$HOME/.local/bin:\$PATH" >> ~/.bashrc
