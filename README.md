@@ -4,6 +4,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/github/license/ika-rwth-aachen/docker-run"/>
+  <a href="https://pypi.org/project/docker-run-cli/"><img src="https://img.shields.io/badge/python-v3.7--v3.12-blue.svg"/></a>
   <a href="https://pypi.org/project/docker-run-cli/"><img src="https://img.shields.io/pypi/v/docker-run-cli?label=PyPI"/></a>
   <a href="https://pypi.org/project/docker-run-cli/"><img src="https://img.shields.io/pypi/dm/docker-run-cli?color=blue&label=PyPI%20downloads"/></a>
 </p>
