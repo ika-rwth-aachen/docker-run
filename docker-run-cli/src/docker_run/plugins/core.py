@@ -87,13 +87,13 @@ class CorePlugin(Plugin):
 
     @classmethod
     def gpuSupportFlags(cls) -> List[str]:
-        has_gpu = True
+        n_gpus = 0
         try:
             pynvml.nvmlInit()
+            n_gpus = pynvml.nvmlDeviceGetCount()
         except pynvml.NVMLError:
-            has_gpu = False
-        has_gpu = has_gpu and (pynvml.nvmlDeviceGetCount() > 0)
-        if has_gpu:
+            pass
+        if n_gpus > 0:
             if cls.ARCH == "x86_64":
                 return ["--gpus all"]
             elif cls.ARCH == "aarch64" and cls.OS == "Linux":
