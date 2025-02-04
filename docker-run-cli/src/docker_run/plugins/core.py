@@ -4,7 +4,7 @@ import platform
 import tempfile
 from typing import Any, Dict, List
 
-import GPUtil
+import pynvml
 
 from docker_run.utils import log, runCommand
 from docker_run.plugins.plugin import Plugin
@@ -87,7 +87,13 @@ class CorePlugin(Plugin):
 
     @classmethod
     def gpuSupportFlags(cls) -> List[str]:
-        if len(GPUtil.getGPUs()) > 0:
+        n_gpus = 0
+        try:
+            pynvml.nvmlInit()
+            n_gpus = pynvml.nvmlDeviceGetCount()
+        except pynvml.NVMLError:
+            pass
+        if n_gpus > 0:
             if cls.ARCH == "x86_64":
                 return ["--gpus all"]
             elif cls.ARCH == "aarch64" and cls.OS == "Linux":
