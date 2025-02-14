@@ -11,8 +11,8 @@ pip install docker-run[docker-ros]
 ## Usage
 
 ```
-usage: docker-run [--help] [--image IMAGE] [--mwd] [--mws] [--name NAME]
-                  [--no-gpu] [--no-it] [--no-loc] [--no-name] [--no-rm]
+usage: docker-run [--help] [--image IMAGE] [--loc] [--mwd] [--mws]
+                  [--name NAME] [--no-gpu] [--no-it] [--no-name] [--no-rm]
                   [--no-tz] [--no-user] [--no-x11] [--verbose] [--version]
 
 Executes `docker run` with the following features enabled by default, each of
@@ -22,10 +22,11 @@ forwarding. Passes any additional arguments to `docker run`. Executes `docker
 exec` instead if a container with the specified name (`--name`) is already
 running.
 
-optional arguments:
+options:
   --help         show this help message and exit
   --image IMAGE  image name (may also be specified without --image as last
                  argument before command)
+  --loc          enable automatic locale
   --mwd          mount current directory at same path
   --mws          [docker-ros] mount current directory into ROS workspace at
                  `/docker-ros/ws/src/target`
@@ -33,7 +34,6 @@ optional arguments:
                  running
   --no-gpu       disable automatic GPU support
   --no-it        disable automatic interactive tty
-  --no-loc       disable automatic locale
   --no-name      disable automatic container name (current directory)
   --no-rm        disable automatic container removal
   --no-tz        disable automatic timezone

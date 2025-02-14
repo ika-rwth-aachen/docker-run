@@ -82,8 +82,8 @@ source $(activate-python-docker-run-shell-completion 2> /dev/null)
 ## Usage
 
 ```
-usage: docker-run [--help] [--image IMAGE] [--mwd] [--name NAME] [--no-gpu]
-                  [--no-it] [--no-loc] [--no-name] [--no-rm] [--no-tz]
+usage: docker-run [--help] [--image IMAGE] [--loc] [--mwd] [--name NAME]
+                  [--no-gpu] [--no-it] [--no-name] [--no-rm] [--no-tz]
                   [--no-x11] [--verbose] [--version]
 
 Executes `docker run` with the following features enabled by default, each of
@@ -93,16 +93,16 @@ forwarding. Passes any additional arguments to `docker run`. Executes `docker
 exec` instead if a container with the specified name (`--name`) is already
 running.
 
-optional arguments:
+options:
   --help         show this help message and exit
   --image IMAGE  image name (may also be specified without --image as last
                  argument before command)
+  --loc          enable automatic locale
   --mwd          mount current directory at same path
   --name NAME    container name; generates `docker exec` command if already
                  running
   --no-gpu       disable automatic GPU support
   --no-it        disable automatic interactive tty
-  --no-loc       disable automatic locale
   --no-name      disable automatic container name (current directory)
   --no-rm        disable automatic container removal
   --no-tz        disable automatic timezone
