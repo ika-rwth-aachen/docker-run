@@ -1,84 +1,148 @@
-# source official docker auto-competion 
+# Source the official Docker bash completion for basic docker commands
 source /usr/share/bash-completion/completions/docker
+# Remove all ':' from COMP_WORDBREAKS so Bash treats Docker image names with registry and tag as a single word.
+COMP_WORDBREAKS=${COMP_WORDBREAKS//:/}
+export COMP_WORDBREAKS
 
 _docker-run() {
-    # use settings from the official docker auto-competion main function (_docker)
+    # Save and enable extglob for advanced pattern matching
     local previous_extglob_setting=$(shopt -p extglob)
     shopt -s extglob
 
+    # Initialize completion variables
     COMPREPLY=()
     local cur prev words cword
-    _get_comp_words_by_ref -n : cur prev words cword
+    _get_comp_words_by_ref -n : cur prev words cword 
 
-    # set default command to run and loop over cli words
+    # Find the main command and its position
     local command='run' command_pos=0 subcommand_pos
     local counter=1
     while [ "$counter" -lt "$cword" ]; do
         case "${words[$counter]}" in
             run)
-                return 0
+                return 0  # Stop if 'run' is found
                 ;;
             -*)
-                ;;
+                ;;        # Skip flags
             =)
-                (( counter++ ))
+                (( counter++ ))  # Skip '='
                 ;;
             *)
                 command="${words[$counter]}"
                 command_pos=$counter
-                break
+                break  # Found the command
                 ;;
         esac
         (( counter++ ))
     done
 
-    # save list of local docker images (with and without tag)
+    # Get list of docker images (with and without tag)
     local docker_images=($(docker images --format "{{.Repository}}:{{.Tag}}"))
     local docker_images_no_tag=($(docker images --format "{{.Repository}}"))
 
-    # check if previous word is docker image or not
-    if [[ " ${docker_images[*]} " =~ " ${prev} " ]]; then
+    # If current word starts with '-', suggest flags
+    if [[ ${cur} == -* ]]; then
+        local docker_run_completions
+        # Get official docker run flags
+        docker_run_completions=$(docker __complete run -- 2>/dev/null | grep -E "^--" | awk '{print $1}' | grep -v "^:")
+        if [[ -n "$docker_run_completions" ]]; then
+            COMPREPLY=($(compgen -W "$docker_run_completions" -- "${cur}"))
+        fi
+        # Add custom flags
+        COMPREPLY+=(
+            "--help"
+            "--image"
+            "--mwd"
+            "--mws"
+            "--no-gpu"
+            "--no-it"
+            "--no-name"
+            "--no-rm"
+            "--no-user"
+            "--no-x11"
+            "--verbose"
+            "--version"
+        )
+        # Filter suggestions based on current input
+        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+
+    # Suggest running container names after --name
+    elif [[ ${prev} == "--name" ]]; then
+        COMPREPLY=$(docker ps --format '{{.Names}}')
+        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+
+    # Suggest image names after --image
+    elif [[ ${prev} == "--image" ]]; then
+        COMPREPLY=($(compgen -W "${docker_images[*]}" -- "${cur}"))
+
+    # Suggest default command for image with tag
+    elif [[ " ${docker_images[*]} " =~ " ${prev} " ]]; then
         COMPREPLY=$(docker inspect --format='{{range .Config.Env}}{{if eq (index (split . "=") 0) "DEFAULT_CMD"}}{{index (split . "=") 1}}{{end}}{{end}}' $prev)
         if [[ -z "$COMPREPLY" ]]; then
             COMPREPLY=$(docker inspect --format='{{join .Config.Cmd " "}}' $prev)
         fi
+
+    # Suggest default command for image without tag (latest)
     elif [[ " ${docker_images_no_tag[*]} " =~ " ${prev} " ]] && [[ " ${docker_images[*]} " =~ " ${prev}:latest " ]]; then
         COMPREPLY=$(docker inspect --format='{{range .Config.Env}}{{if eq (index (split . "=") 0) "DEFAULT_CMD"}}{{index (split . "=") 1}}{{end}}{{end}}' $prev:latest)
         if [[ -z "$COMPREPLY" ]]; then
             COMPREPLY=$(docker inspect --format='{{join .Config.Cmd " "}}' $prev:latest)
         fi
+
+    # Handle all other cases
     else
-        # use official docker run auto-completion
         local completions_func=_docker_run
-        declare -F $completions_func >/dev/null && $completions_func
+        if declare -F $completions_func >/dev/null; then
+            $completions_func
+        else
+            case "${prev}" in
+                # If previous word is a boolean flag, dont suggest anything 
+                --no-gpu|--no-it|--no-name|--no-rm|--no-user|--no-x11|--verbose|--version|--help|--loc|--no-tz)
+                    COMPREPLY=()
+                    ;;
+                *)
+                    # Build filtered_words (official ones) for docker __complete:
+                    # - Skip values after flags that expect a value (like --image, --name ...)
+                    # - Skip words that are docker images
+                    # - All other words are kept for context
+                    local filtered_words=()
+                    local skip_next=false
+                    for word in "${words[@]:1}"; do
+                        if [[ "$skip_next" == "true" ]]; then
+                            skip_next=false
+                            continue  # Skip value after a flag that expects one
+                        fi
+                        case "$word" in
+                            # Flags that expect a value: skip next word
+                            --image|--name)
+                                skip_next=true
+                                ;;
+                            *)
+                                # If the word is a docker image skip it
+                                if [[ " ${docker_images[*]} " =~ " ${word} " ]] || [[ " ${docker_images_no_tag[*]} " =~ " ${word} " ]]; then
+                                    continue
+                                else
+                                    filtered_words+=("$word")
+                                fi
+                                ;;
+                        esac
+                    done
+
+                    # Get docker run completions for remaining words 
+                    local docker_run_completions
+                    docker_run_completions=$(docker __complete run "${filtered_words[@]}" 2>/dev/null | grep -v "^:" | grep -v "Completion ended" | grep -v "\[Debug\]" | grep -v "\[Error\]")
+                    if [[ -n "$docker_run_completions" ]]; then
+                        COMPREPLY=($(compgen -W "$docker_run_completions" -- "${cur}"))
+                    fi
+                    ;;
+            esac
+        fi
     fi
 
-    # add custom args to auto-complete suggestions
-    if [[ ${cur} == -* ]]; then
-        COMPREPLY+=(
-        "--help"
-        "--image"
-        "--mwd"
-        "--mws"
-        "--no-gpu"
-        "--no-gpu"
-        "--no-it"
-        "--no-name"
-        "--no-rm"
-        "--no-user"
-        "--no-x11"
-        "--verbose"
-        "--version"
-        )
-        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
-    elif [[ ${prev} == "--name" ]]; then
-        # auto-complete with name of running containers
-        COMPREPLY=$(docker ps --format '{{.Names}}')
-        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
-    fi
-
+    # Restore previous extglob setting
     eval "$previous_extglob_setting"
     return 0
 }
 
+# Register the completion function for docker-run
 complete -F _docker-run docker-run
