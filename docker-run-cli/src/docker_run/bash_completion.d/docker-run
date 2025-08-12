@@ -20,8 +20,7 @@ _docker-run() {
     while [ "$counter" -lt "$cword" ]; do
         case "${words[$counter]}" in
             run)
-                return 0  # Stop if 'run' is found
-                ;;
+                ;;        # Continue, don't return
             -*)
                 ;;        # Skip flags
             =)
@@ -40,34 +39,8 @@ _docker-run() {
     local docker_images=($(docker images --format "{{.Repository}}:{{.Tag}}"))
     local docker_images_no_tag=($(docker images --format "{{.Repository}}"))
 
-    # If current word starts with '-', suggest flags
-    if [[ ${cur} == -* ]]; then
-        local docker_run_completions
-        # Get official docker run flags
-        docker_run_completions=$(docker __complete run -- 2>/dev/null | grep -E "^--" | awk '{print $1}' | grep -v "^:")
-        if [[ -n "$docker_run_completions" ]]; then
-            COMPREPLY=($(compgen -W "$docker_run_completions" -- "${cur}"))
-        fi
-        # Add custom flags
-        COMPREPLY+=(
-            "--help"
-            "--image"
-            "--mwd"
-            "--mws"
-            "--no-gpu"
-            "--no-it"
-            "--no-name"
-            "--no-rm"
-            "--no-user"
-            "--no-x11"
-            "--verbose"
-            "--version"
-        )
-        # Filter suggestions based on current input
-        COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
-
     # Suggest running container names after --name
-    elif [[ ${prev} == "--name" ]]; then
+    if [[ ${prev} == "--name" ]]; then
         COMPREPLY=$(docker ps --format '{{.Names}}')
         COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
 
@@ -77,6 +50,12 @@ _docker-run() {
 
     # Suggest default command for image with tag
     elif [[ " ${docker_images[*]} " =~ " ${prev} " ]]; then
+        # If user types '-' after image, only show custom flags
+        if [[ ${cur} == -* ]]; then
+            COMPREPLY=($(compgen -W "--help --loc --mwd --mws --no-gpu --no-it --no-name --no-rm --no-tz --no-user --no-x11 --verbose --version" -- "${cur}"))
+            return 0
+        fi
+        # Otherwise show default command
         COMPREPLY=$(docker inspect --format='{{range .Config.Env}}{{if eq (index (split . "=") 0) "DEFAULT_CMD"}}{{index (split . "=") 1}}{{end}}{{end}}' $prev)
         if [[ -z "$COMPREPLY" ]]; then
             COMPREPLY=$(docker inspect --format='{{join .Config.Cmd " "}}' $prev)
@@ -84,58 +63,90 @@ _docker-run() {
 
     # Suggest default command for image without tag (latest)
     elif [[ " ${docker_images_no_tag[*]} " =~ " ${prev} " ]] && [[ " ${docker_images[*]} " =~ " ${prev}:latest " ]]; then
+        # If user types '-' after image, only show custom flags
+        if [[ ${cur} == -* ]]; then
+            COMPREPLY=($(compgen -W "--help --loc --mwd --mws --no-gpu --no-it --no-name --no-rm --no-tz --no-user --no-x11 --verbose --version" -- "${cur}"))
+            return 0
+        fi
+        # Otherwise show default command
         COMPREPLY=$(docker inspect --format='{{range .Config.Env}}{{if eq (index (split . "=") 0) "DEFAULT_CMD"}}{{index (split . "=") 1}}{{end}}{{end}}' $prev:latest)
         if [[ -z "$COMPREPLY" ]]; then
             COMPREPLY=$(docker inspect --format='{{join .Config.Cmd " "}}' $prev:latest)
         fi
 
-    # Handle all other cases
+    # Handle all other cases - normal Docker completion
     else
-        local completions_func=_docker_run
-        if declare -F $completions_func >/dev/null; then
-            $completions_func
-        else
-            case "${prev}" in
-                # If previous word is a boolean flag, dont suggest anything 
-                --no-gpu|--no-it|--no-name|--no-rm|--no-user|--no-x11|--verbose|--version|--help|--loc|--no-tz)
-                    COMPREPLY=()
-                    ;;
-                *)
-                    # Build filtered_words (official ones) for docker __complete:
-                    # - Skip values after flags that expect a value (like --image, --name ...)
-                    # - Skip words that are docker images
-                    # - All other words are kept for context
-                    local filtered_words=()
-                    local skip_next=false
-                    for word in "${words[@]:1}"; do
-                        if [[ "$skip_next" == "true" ]]; then
-                            skip_next=false
-                            continue  # Skip value after a flag that expects one
-                        fi
-                        case "$word" in
-                            # Flags that expect a value: skip next word
-                            --image|--name)
-                                skip_next=true
-                                ;;
-                            *)
-                                # If the word is a docker image skip it
-                                if [[ " ${docker_images[*]} " =~ " ${word} " ]] || [[ " ${docker_images_no_tag[*]} " =~ " ${word} " ]]; then
-                                    continue
-                                else
-                                    filtered_words+=("$word")
-                                fi
-                                ;;
-                        esac
-                    done
+        # Check if we already have an image in the command
+        local has_image=false
+        for word in "${words[@]:1}"; do
+            if [[ " ${docker_images[*]} " =~ " ${word} " ]] || [[ " ${docker_images_no_tag[*]} " =~ " ${word} " ]]; then
+                has_image=true
+                break
+            fi
+        done
 
-                    # Get docker run completions for remaining words 
-                    local docker_run_completions
-                    docker_run_completions=$(docker __complete run "${filtered_words[@]}" 2>/dev/null | grep -v "^:" | grep -v "Completion ended" | grep -v "\[Debug\]" | grep -v "\[Error\]")
-                    if [[ -n "$docker_run_completions" ]]; then
-                        COMPREPLY=($(compgen -W "$docker_run_completions" -- "${cur}"))
-                    fi
-                    ;;
-            esac
+        # Only suggest custom flags after image
+        if [[ "$has_image" == "true" && ${cur} == -* ]]; then
+            COMPREPLY=($(compgen -W "--help --loc --mwd --mws --no-gpu --no-it --no-name --no-rm --no-tz --no-user --no-x11 --verbose --version" -- "${cur}"))
+            return 0
+        # If current word starts with '-', suggest flags (when no image present)
+        elif [[ ${cur} == -* ]]; then
+            local docker_run_completions
+            # Get official docker run flags
+            docker_run_completions=$(docker __complete run -- 2>/dev/null | grep -E "^--" | awk '{print $1}' | grep -v "^:")
+            if [[ -n "$docker_run_completions" ]]; then
+                COMPREPLY=($(compgen -W "$docker_run_completions" -- "${cur}"))
+            fi
+            # Add custom flags
+            COMPREPLY+=(
+                "--help"
+                "--image"  
+                "--loc"
+                "--mwd"
+                "--mws"
+                "--no-gpu"
+                "--no-it"
+                "--no-name"
+                "--no-rm"
+                "--no-tz"
+                "--no-user"
+                "--no-x11"
+                "--verbose"
+                "--version"
+            )
+            # Filter suggestions based on current input
+            COMPREPLY=($(compgen -W "${COMPREPLY[*]}" -- "${cur}"))
+
+        # Handle all other cases - normal Docker completion
+        else
+            # Build filtered_words (official ones) for docker __complete:
+            local filtered_words=()
+            local skip_next=false
+            for word in "${words[@]:1}"; do
+                if [[ "$skip_next" == "true" ]]; then
+                    skip_next=false
+                    continue
+                fi
+                case "$word" in
+                    --image|--name)
+                        skip_next=true
+                        ;;
+                    # Filter out custom flags that Docker doesn't know about
+                    --help|--loc|--mwd|--mws|--no-gpu|--no-it|--no-name|--no-rm|--no-tz|--no-user|--no-x11|--verbose|--version)
+                        continue  # Skip custom flags
+                        ;;
+                    *)
+                        filtered_words+=("$word")
+                        ;;
+                esac
+            done
+
+            # Get docker run completions for remaining words 
+            local docker_run_completions
+            docker_run_completions=$(docker __complete run "${filtered_words[@]}" 2>/dev/null | grep -v "^:" | grep -v "Completion ended" | grep -v "\[Debug\]" | grep -v "\[Error\]")
+            if [[ -n "$docker_run_completions" ]]; then
+                COMPREPLY=($(compgen -W "$docker_run_completions" -- "${cur}"))
+            fi
         fi
     fi
 
