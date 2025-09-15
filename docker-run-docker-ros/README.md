@@ -5,7 +5,7 @@
 ## Installation
 
 ```bash
-pip install docker-run[docker-ros]
+pip install docker-run-cli[docker-ros]
 ```
 
 ## Usage
